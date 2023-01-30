@@ -9,7 +9,10 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.DefaultDriveCommand;
+import frc.robot.commands.FieldOrientedDriveCommand;
+import frc.robot.commands.DefaultArmCommand;
+import frc.robot.subsystems.Arm;
+// import frc.robot.subsystems.Claw;
 import frc.robot.subsystems.Drivetrain;
 
 /**
@@ -22,16 +25,20 @@ import frc.robot.subsystems.Drivetrain;
 public class RobotContainer {
     // The robot's subsystems and commands are defined here.
     private final Drivetrain drivetrain = new Drivetrain();
+    private final Arm arm = new Arm();
+    // private final Claw claw = new Claw()
 
     // The drive team controllers are defined here.
     private final XboxController driverController = new XboxController(0);
-    // FIXME: create an operator controller
+    private final XboxController operatorController = new XboxController(1);
 
     // These variables are used to limit the max drive speed
     // FIXME: Add ramping and empirical limit for current.
-    public double speedModX = 0.25;
-    public double speedModY = 0.25;
-    public double speedModZ = 0.25;
+    public double speedModXY = 0.25;
+    public double speedModR = 0.25;
+    public double speedModArmR = 0.01;
+    public double speedModArmE = 0.01;
+
 
     /**
      * The container for the robot. Contains subsystems, IO devices, and commands.
@@ -42,11 +49,18 @@ public class RobotContainer {
         // Left stick Y axis -> forward and backwards movement
         // Left stick X axis -> left and right movement
         // Right stick X axis -> rotation
-        drivetrain.setDefaultCommand(new DefaultDriveCommand(drivetrain,
-            () -> -Utilities.modifyAxis(driverController.getLeftY()) * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND * speedModY,
-            () -> -Utilities.modifyAxis(driverController.getLeftX()) * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND * speedModX,
-            () -> -Utilities.modifyAxis(driverController.getRightX()) * Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * speedModZ));
+        drivetrain.setDefaultCommand(new FieldOrientedDriveCommand(drivetrain,
+            () -> -Utilities.modifyAxis(driverController.getLeftY()) * Constants.MAX_VELOCITY_METERS_PER_SECOND * speedModXY,
+            () -> -Utilities.modifyAxis(driverController.getLeftX()) * Constants.MAX_VELOCITY_METERS_PER_SECOND * speedModXY,
+            () -> -Utilities.modifyAxis(driverController.getRightX()) * Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * speedModR));
 
+        // Set up the default command for the arm.
+        // Right stick Y axis -> arm rotation
+        // Left stick Y axis -> arm extension
+        arm.setDefaultCommand(new DefaultArmCommand(arm,
+            () -> -Utilities.modifyAxis(operatorController.getRightY()) * Constants.MAX_ARM_VELOCITY_RADIANS_PER_SECOND * speedModArmR,
+            () -> -Utilities.modifyAxis(operatorController.getLeftY()) * Constants.MAX_ARM_VELOCITY_METERS_PER_SECOND * speedModArmE));
+        
         // Configure the button bindings
         configureButtonBindings();
     }
@@ -82,20 +96,19 @@ public class RobotContainer {
 
     // Decreases max drive speed by 25%
     public void speedDown() {
-        speedModX *= 0.75;
-        speedModY *= 0.75;
-        speedModZ *= 0.75;
+        speedModXY *= 0.75;
+        speedModR *= 0.75;
     }
 
     // Increases max drive speed by 33%
     public void speedUp() {
-        speedModX /= 0.75;
-        speedModY /= 0.75;
-        speedModZ /= 0.75;
-        if (speedModX > 1.0) {
-            speedModX = 1.0;
-            speedModY = 1.0;
-            speedModZ = 1.0;
+        speedModXY /= 0.75;
+        speedModR /= 0.75;
+        if (speedModXY > 1.0) {
+            speedModXY = 1.0;
+        }
+        if (speedModR > 1.0) {
+            speedModR = 1.0;
         }
     }
 }

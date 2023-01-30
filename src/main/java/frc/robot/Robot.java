@@ -5,7 +5,6 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-// import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -21,7 +20,7 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String autoSelected;
   private final SendableChooser<String> chooser = new SendableChooser<>();
-  private RobotContainer robotContainer;
+  // private RobotContainer robotContainer;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -32,7 +31,8 @@ public class Robot extends TimedRobot {
     chooser.setDefaultOption("Default Auto", kDefaultAuto);
     chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", chooser);
-    robotContainer = new RobotContainer();
+    // robotContainer = new RobotContainer();
+    new RobotContainer();
   }
 
   /**
@@ -88,7 +88,10 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    // FIXME: Add code here to put the robot in coast mode >5 seconds after robot is disabled
+    // I think I posted a link to the issue in GitHub related to how we can do this
+    }
 
   /** This function is called periodically when disabled. */
   @Override
@@ -96,7 +99,10 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when test mode is enabled. */
   @Override
-  public void testInit() {}
+  public void testInit() {
+    // FIXME: Add code to check the state of all Spark Max's flash memory
+    // Burn to flash any that don't match what they should
+  }
 
   /** This function is called periodically during test mode. */
   @Override

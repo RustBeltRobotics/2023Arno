@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
-import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
 import com.swervedrivespecialties.swervelib.SwerveModule;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -14,40 +13,17 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Utilities;
 
 import static frc.robot.Constants.*;
 
 public class Drivetrain extends SubsystemBase {
-    // Maximum battery voltage
-    public static final double MAX_VOLTAGE = 12.0;
-
-    /**
-     * The maximum linear velocity of the robot in meters per second.
-     * <p>
-     * This is a measure of how fast the robot can move linearly.
-     */
-    public static final double MAX_VELOCITY_METERS_PER_SECOND = 5880.0 / 60.0 *
-        SdsModuleConfigurations.MK4I_L2.getDriveReduction() *
-        SdsModuleConfigurations.MK4I_L2.getWheelDiameter() * Math.PI;
-
-    /**
-     * The maximum angular velocity of the robot in radians per second.
-     * <p>
-     * This is a measure of how fast the robot can rotate in place.
-     */
-    public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND /
-            Math.hypot(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0);
-
     // Creates a swerve kinematics object, to convert desired chassis velocity into individual module states
     private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
-            // Front left
             new Translation2d(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0),
-            // Front right
             new Translation2d(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0),
-            // Back left
             new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0),
-            // Back right
             new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0));
 
     // The important thing about how you configure your gyroscope is that rotating
@@ -69,22 +45,19 @@ public class Drivetrain extends SubsystemBase {
     // Boolean statement to control autobalance functionality
     private boolean autoBalanceOn = false;
 
-
+    // FIXME: use software to configure Spark Max's
+    // FIXME: Experiment with lowering NEO current limit to 50.
+    // How low do we have to drop to allow for "Max power" for 2+ minutes?
     public Drivetrain() {
         ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
         frontLeftModule = Mk4iSwerveModuleHelper.createNeo(
             // This parameter is optional, but will allow you to see the current state of the module on the dashboard.
             tab.getLayout("Front Left Module", BuiltInLayouts.kList).withSize(2, 4).withPosition(0, 0),
-            // This can either be STANDARD, FAST or VERY FAST depending on your gear configuration
             Mk4iSwerveModuleHelper.GearRatio.L2,
-            // This is the ID of the drive motor
             FRONT_LEFT_MODULE_DRIVE_MOTOR,
-            // This is the ID of the steer motor
             FRONT_LEFT_MODULE_STEER_MOTOR,
-            // This is the ID of the steer encoder
             FRONT_LEFT_MODULE_STEER_ENCODER,
-            // This is how much the steer encoder is offset from true zero (In our case, zero is facing straight forward)
             FRONT_LEFT_MODULE_STEER_OFFSET);
 
         frontRightModule = Mk4iSwerveModuleHelper.createNeo(
@@ -130,10 +103,6 @@ public class Drivetrain extends SubsystemBase {
 
     public void toggleAutoBalance() {
         autoBalanceOn = !autoBalanceOn;
-        System.out.println("State: " + autoBalanceOn);
-        System.out.println("Pitch: " + navx.getPitch());
-        System.out.println("Roll: " + navx.getRoll());
-        System.out.println("Yaw: " + navx.getYaw());
     }
 
     public Rotation2d getGyroscopeRotation() {
@@ -150,12 +119,11 @@ public class Drivetrain extends SubsystemBase {
     public void drive(ChassisSpeeds chassisSpeeds) {
         if (!autoBalanceOn) {
             this.chassisSpeeds = chassisSpeeds;
-            System.out.println(chassisSpeeds.toString());
         }
         else {
             this.chassisSpeeds = new ChassisSpeeds(
-                -Utilities.modifyAxis(Math.sin(navx.getRoll() * Math.PI / 180)) * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, 
-                -Utilities.modifyAxis(Math.sin(navx.getPitch() * Math.PI / 180)) * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, 
+                -Utilities.deadband(Math.sin(navx.getRoll() * Math.PI / 180), 0.5 * Math.PI / 180) * Constants.MAX_VELOCITY_METERS_PER_SECOND, 
+                -Utilities.deadband(Math.sin(navx.getPitch() * Math.PI / 180), 0.5 * Math.PI / 180) * Constants.MAX_VELOCITY_METERS_PER_SECOND, 
                 0.0);
         }
     }
