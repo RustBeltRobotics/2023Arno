@@ -3,11 +3,13 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMax.SoftLimitDirection;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Utilities;
+
+import static frc.robot.Constants.*;
+
 
 public class Arm extends SubsystemBase {
 
@@ -22,29 +24,38 @@ public class Arm extends SubsystemBase {
     private RelativeEncoder extensionEncoder;
 
     public Arm() {
-        rotationSparkMaxLeft = new CANSparkMax(Constants.LEFT_ARM_MOTOR, MotorType.kBrushless);
+        rotationSparkMaxLeft = new CANSparkMax(LEFT_ARM_MOTOR, MotorType.kBrushless);
         rotationSparkMaxLeft.restoreFactoryDefaults();
         rotationSparkMaxLeft.setIdleMode(IdleMode.kBrake);
         rotationSparkMaxLeft.setInverted(false); //FIXME: Confirm polarity
-        rotationSparkMaxLeft.setSmartCurrentLimit(40);
+        rotationSparkMaxLeft.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
+        rotationSparkMaxLeft.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
+        rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_ANGLE_DEGREES);
+        rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kReverse, MIN_ARM_ANGLE_DEGREES);
         rotationLeftEncoder = rotationSparkMaxLeft.getEncoder();
-        rotationLeftEncoder.setPositionConversionFactor(1); // FIXME: set a conversion factor
+        rotationLeftEncoder.setPositionConversionFactor(ARM_ROTATION_CONVERSION);
 
-        rotationSparkMaxRight = new CANSparkMax(Constants.RIGHT_ARM_MOTOR, MotorType.kBrushless);
+        rotationSparkMaxRight = new CANSparkMax(RIGHT_ARM_MOTOR, MotorType.kBrushless);
         rotationSparkMaxRight.restoreFactoryDefaults();
         rotationSparkMaxRight.setIdleMode(IdleMode.kBrake);
         rotationSparkMaxRight.setInverted(true); //FIXME: Confirm polarity
-        rotationSparkMaxLeft.setSmartCurrentLimit(40);
+        rotationSparkMaxRight.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
+        rotationSparkMaxRight.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
+        rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_ANGLE_DEGREES);
+        rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kReverse, MIN_ARM_ANGLE_DEGREES);
         rotationRightEncoder = rotationSparkMaxRight.getEncoder();
-        rotationRightEncoder.setPositionConversionFactor(1); // FIXME: set a conversion factor
+        rotationRightEncoder.setPositionConversionFactor(ARM_ROTATION_CONVERSION);
         
-        extensionSparkMax = new CANSparkMax(Constants.ARM_EXTENSION_MOTOR, MotorType.kBrushless);
+        extensionSparkMax = new CANSparkMax(ARM_EXTENSION_MOTOR, MotorType.kBrushless);
         extensionSparkMax.restoreFactoryDefaults();
         extensionSparkMax.setIdleMode(IdleMode.kBrake);
         extensionSparkMax.setInverted(false); //FIXME: Confirm polarity
-        rotationSparkMaxLeft.setSmartCurrentLimit(20);
+        extensionSparkMax.setSmartCurrentLimit(NEO550_SMART_CURRENT_LIMIT);
+        extensionSparkMax.setSecondaryCurrentLimit(NEO550_SECONDARY_CURRENT_LIMIT);
+        extensionSparkMax.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_EXTENSION_INCHES);
+        extensionSparkMax.setSoftLimit(SoftLimitDirection.kReverse, MAX_ARM_EXTENSION_INCHES);
         extensionEncoder = extensionSparkMax.getEncoder();
-        extensionEncoder.setPositionConversionFactor(1); // FIXME: set a conversion factor
+        extensionEncoder.setPositionConversionFactor(ARM_EXTENSION_CONVERSION);
     }
 
     public void driveArm(double rotationRate, double extensionRate) {
@@ -52,9 +63,9 @@ public class Arm extends SubsystemBase {
             rotationRate = 0;
             extensionRate = 0;
         } else {
-            if (getAngle() >= Constants.MAX_ARM_ANGLE_DEGREES) {
+            if (getAngle() >= MAX_ARM_ANGLE_DEGREES) {
                 rotationRate = Utilities.clamp(rotationRate, Double.MIN_VALUE, 0);
-            } else if (getAngle() <= -Constants.MAX_ARM_ANGLE_DEGREES) {
+            } else if (getAngle() <= -MAX_ARM_ANGLE_DEGREES) {
                 rotationRate = Utilities.clamp(rotationRate, 0, Double.MAX_VALUE);
             }
             if (getExtension() >= calculateMaxExtension(getAngle())) {
@@ -69,37 +80,34 @@ public class Arm extends SubsystemBase {
     }
 
     public void driveArmTo(double angle, double extension) {
-        double rotationRate = (angle - getAngle()) / (2 * Constants.MAX_ARM_ANGLE_DEGREES);
-        rotationRate = Utilities.deadband(rotationRate, 0.05) * Constants.MAX_ARM_VELOCITY_RADIANS_PER_SECOND;
+        double rotationRate = (angle - getAngle()) / (2 * MAX_ARM_ANGLE_DEGREES);
+        rotationRate = Utilities.deadband(rotationRate, 0.05) * MAX_ARM_VELOCITY_DEGREES_PER_SECOND;
         
-        double extensionRate = (extension - getExtension()) / Constants.MAX_ARM_EXTENSION_METERS;
-        extensionRate = Utilities.deadband(extensionRate, 0.05) * Constants.MAX_ARM_VELOCITY_METERS_PER_SECOND;
+        double extensionRate = (extension - getExtension()) / MAX_ARM_EXTENSION_INCHES;
+        extensionRate = Utilities.deadband(extensionRate, 0.05) * MAX_ARM_VELOCITY_INCHES_PER_SECOND;
         
         driveArm(rotationRate, extensionRate);
     }
 
-    private double getAngle() { //FIXME: consider making private
+    private double getAngle() {
         double averageAngle = (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
-        // System.out.println(averageAngle);
         return averageAngle;
     }
 
-    private double getExtension() { //FIXME: consider making private
+    private double getExtension() {
         double extension = extensionEncoder.getPosition();
-        // System.out.println(extension);
         return extension;
     }
 
     private double calculateMaxExtension(double angle) {
         angle = Math.abs(angle);
 
-        if (angle < Constants.ARM_FRAME_PERIMITER_ANGLE_DEGRESS) {
-            return 0; // FIXME: We might need to allow some small amount of extension, so that we can
-                      // pick up game pieces that are inside the robot
-        } else if (angle < Constants.ARM_GROUND_ANGLE_DEGRESS) {
+        if (angle < ARM_FRAME_PERIMITER_ANGLE_DEGRESS) {
+            return 0; // FIXME: We might need to allow some small amount of extension, so that we can pick up game pieces that are inside the robot
+        } else if (angle < ARM_GROUND_ANGLE_DEGRESS) {
             return 1; // FIXME: correct trig/geo
         } else {
-            return Constants.MAX_ARM_EXTENSION_METERS;
+            return MAX_ARM_EXTENSION_INCHES;
         }
     }
 
@@ -107,9 +115,8 @@ public class Arm extends SubsystemBase {
         inputLocked = !inputLocked;
     }
 
-    @Override
-    public void periodic() {
-        System.out.println("Angle: " + getAngle());
-        System.out.println("Extension: " + getExtension());
+    public void printArm() {
+        System.out.println("Arm Angle: " + getAngle());
+        System.out.println("Arm Extension: " + getExtension());
     }
 }

@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
+
+import com.swervedrivespecialties.swervelib.Mk4ModuleConfiguration;
 import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
 import com.swervedrivespecialties.swervelib.SwerveModule;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,7 +15,6 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Utilities;
 
 import static frc.robot.Constants.*;
@@ -31,6 +32,10 @@ public class Drivetrain extends SubsystemBase {
     // it wraps back over to zero.
     private final AHRS navx = new AHRS(SPI.Port.kMXP, (byte) 200); // NavX connected over MXP
 
+    // This is used to set the current limits
+    private Mk4ModuleConfiguration swerveConfiguration = new Mk4ModuleConfiguration();
+    
+
     // These are our modules. We initialize them in the constructor.
     private final SwerveModule frontLeftModule;
     private final SwerveModule frontRightModule;
@@ -45,15 +50,17 @@ public class Drivetrain extends SubsystemBase {
     // Boolean statement to control autobalance functionality
     private boolean autoBalanceOn = false;
 
-    // FIXME: use software to configure Spark Max's
-    // FIXME: Experiment with lowering NEO current limit to 50.
-    // How low do we have to drop to allow for "Max power" for 2+ minutes?
+    // FIXME: Optimize current limit to allow for "Max power" for 3 minutes.
     public Drivetrain() {
         ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
+        swerveConfiguration.setNominalVoltage(MAX_VOLTAGE);
+        swerveConfiguration.setDriveCurrentLimit(DRIVE_CURRENT_LIMIT);
+        swerveConfiguration.setSteerCurrentLimit(STEER_CURRENT_LIMIT); // FIXME: for some reason this is setting the limit to 40, instead of 20
+
         frontLeftModule = Mk4iSwerveModuleHelper.createNeo(
-            // This parameter is optional, but will allow you to see the current state of the module on the dashboard.
             tab.getLayout("Front Left Module", BuiltInLayouts.kList).withSize(2, 4).withPosition(0, 0),
+            swerveConfiguration,
             Mk4iSwerveModuleHelper.GearRatio.L2,
             FRONT_LEFT_MODULE_DRIVE_MOTOR,
             FRONT_LEFT_MODULE_STEER_MOTOR,
@@ -62,6 +69,7 @@ public class Drivetrain extends SubsystemBase {
 
         frontRightModule = Mk4iSwerveModuleHelper.createNeo(
             tab.getLayout("Front Right Module", BuiltInLayouts.kList).withSize(2, 4).withPosition(2, 0),
+            swerveConfiguration,
             Mk4iSwerveModuleHelper.GearRatio.L2,
             FRONT_RIGHT_MODULE_DRIVE_MOTOR,
             FRONT_RIGHT_MODULE_STEER_MOTOR,
@@ -70,6 +78,7 @@ public class Drivetrain extends SubsystemBase {
 
         backLeftModule = Mk4iSwerveModuleHelper.createNeo(
             tab.getLayout("Back Left Module", BuiltInLayouts.kList).withSize(2, 4).withPosition(4, 0),
+            swerveConfiguration,
             Mk4iSwerveModuleHelper.GearRatio.L2,
             BACK_LEFT_MODULE_DRIVE_MOTOR,
             BACK_LEFT_MODULE_STEER_MOTOR,
@@ -78,6 +87,7 @@ public class Drivetrain extends SubsystemBase {
 
         backRightModule = Mk4iSwerveModuleHelper.createNeo(
             tab.getLayout("Back Right Module", BuiltInLayouts.kList).withSize(2, 4).withPosition(6, 0),
+            swerveConfiguration,
             Mk4iSwerveModuleHelper.GearRatio.L2,
             BACK_RIGHT_MODULE_DRIVE_MOTOR,
             BACK_RIGHT_MODULE_STEER_MOTOR,
@@ -122,8 +132,8 @@ public class Drivetrain extends SubsystemBase {
         }
         else {
             this.chassisSpeeds = new ChassisSpeeds(
-                -Utilities.deadband(Math.sin(navx.getRoll() * Math.PI / 180), 0.5 * Math.PI / 180) * Constants.MAX_VELOCITY_METERS_PER_SECOND, 
-                -Utilities.deadband(Math.sin(navx.getPitch() * Math.PI / 180), 0.5 * Math.PI / 180) * Constants.MAX_VELOCITY_METERS_PER_SECOND, 
+                -Utilities.deadband(Math.sin(Math.toRadians(navx.getRoll())), Math.toRadians(0.5)) * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR, 
+                -Utilities.deadband(Math.sin(Math.toRadians(navx.getPitch())), Math.toRadians(0.5)) * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR, 
                 0.0);
         }
     }
@@ -139,10 +149,10 @@ public class Drivetrain extends SubsystemBase {
             backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[3].angle.getRadians());
         }
         else {
-            frontLeftModule.set(0, 45 * (Math.PI / 180));
-            frontRightModule.set(0, -45 * (Math.PI / 180));
-            backLeftModule.set(0, -45 * (Math.PI / 180));
-            backRightModule.set(0, 45 * (Math.PI / 180));
+            frontLeftModule.set(0, Math.toRadians(45));
+            frontRightModule.set(0, -Math.toRadians(45));
+            backLeftModule.set(0, -Math.toRadians(45));
+            backRightModule.set(0, Math.toRadians(45));
         }
     }
 }
