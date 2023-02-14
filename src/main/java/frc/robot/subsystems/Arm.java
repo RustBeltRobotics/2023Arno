@@ -5,6 +5,8 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMax.SoftLimitDirection;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Utilities;
 
@@ -27,7 +29,7 @@ public class Arm extends SubsystemBase {
         rotationSparkMaxLeft = new CANSparkMax(LEFT_ARM_MOTOR, MotorType.kBrushless);
         rotationSparkMaxLeft.restoreFactoryDefaults();
         rotationSparkMaxLeft.setIdleMode(IdleMode.kBrake);
-        rotationSparkMaxLeft.setInverted(false); //FIXME: Confirm polarity
+        rotationSparkMaxLeft.setInverted(true);
         rotationSparkMaxLeft.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
         rotationSparkMaxLeft.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
         rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_ANGLE_DEGREES);
@@ -38,7 +40,7 @@ public class Arm extends SubsystemBase {
         rotationSparkMaxRight = new CANSparkMax(RIGHT_ARM_MOTOR, MotorType.kBrushless);
         rotationSparkMaxRight.restoreFactoryDefaults();
         rotationSparkMaxRight.setIdleMode(IdleMode.kBrake);
-        rotationSparkMaxRight.setInverted(true); //FIXME: Confirm polarity
+        rotationSparkMaxRight.setInverted(false);
         rotationSparkMaxRight.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
         rotationSparkMaxRight.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
         rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_ANGLE_DEGREES);
@@ -49,34 +51,37 @@ public class Arm extends SubsystemBase {
         extensionSparkMax = new CANSparkMax(ARM_EXTENSION_MOTOR, MotorType.kBrushless);
         extensionSparkMax.restoreFactoryDefaults();
         extensionSparkMax.setIdleMode(IdleMode.kBrake);
-        extensionSparkMax.setInverted(false); //FIXME: Confirm polarity
+        extensionSparkMax.setInverted(false); // FIXME: Confirm polarity
         extensionSparkMax.setSmartCurrentLimit(NEO550_SMART_CURRENT_LIMIT);
         extensionSparkMax.setSecondaryCurrentLimit(NEO550_SECONDARY_CURRENT_LIMIT);
         extensionSparkMax.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_EXTENSION_INCHES);
-        extensionSparkMax.setSoftLimit(SoftLimitDirection.kReverse, MAX_ARM_EXTENSION_INCHES);
+        extensionSparkMax.setSoftLimit(SoftLimitDirection.kReverse, MIN_ARM_EXTENSION_INCHES);
         extensionEncoder = extensionSparkMax.getEncoder();
         extensionEncoder.setPositionConversionFactor(ARM_EXTENSION_CONVERSION);
     }
 
     public void driveArm(double rotationRate, double extensionRate) {
-        if (inputLocked == true) {
-            rotationRate = 0;
-            extensionRate = 0;
-        } else {
-            if (getAngle() >= MAX_ARM_ANGLE_DEGREES) {
-                rotationRate = Utilities.clamp(rotationRate, Double.MIN_VALUE, 0);
-            } else if (getAngle() <= -MAX_ARM_ANGLE_DEGREES) {
-                rotationRate = Utilities.clamp(rotationRate, 0, Double.MAX_VALUE);
-            }
-            if (getExtension() >= calculateMaxExtension(getAngle())) {
-                extensionRate = Utilities.clamp(extensionRate, Double.MIN_VALUE, 0);
-                if (getAngle() > 0) {
-                    rotationRate = Utilities.clamp(rotationRate, 0, Double.MAX_VALUE);
-                } else {
-                    rotationRate = Utilities.clamp(rotationRate, Double.MIN_VALUE, 0);
-                }
-            }
-        }
+        // if (inputLocked == true) {
+        //     rotationRate = 0;
+        //     extensionRate = 0;
+        // } else {
+            // if (getAngle() >= MAX_ARM_ANGLE_DEGREES) {
+            //     rotationRate = Utilities.clamp(rotationRate, Double.MIN_VALUE, 0);
+            // } else if (getAngle() <= -MAX_ARM_ANGLE_DEGREES) {
+            //     rotationRate = Utilities.clamp(rotationRate, 0, Double.MAX_VALUE);
+            // }
+            // if (getExtension() >= calculateMaxExtension(getAngle())) {
+            //     extensionRate = Utilities.clamp(extensionRate, Double.MIN_VALUE, 0);
+            //     if (getAngle() > 0) {
+            //         rotationRate = Utilities.clamp(rotationRate, 0, Double.MAX_VALUE);
+            //     } else {
+            //         rotationRate = Utilities.clamp(rotationRate, Double.MIN_VALUE, 0);
+            //     }
+            // }
+        // }
+        rotationSparkMaxLeft.set(rotationRate / MAX_ARM_VELOCITY_DEGREES_PER_SECOND);
+        rotationSparkMaxRight.set(rotationRate / MAX_ARM_VELOCITY_DEGREES_PER_SECOND);
+        extensionSparkMax.set(extensionRate / MAX_ARM_VELOCITY_INCHES_PER_SECOND);
     }
 
     public void driveArmTo(double angle, double extension) {
@@ -115,8 +120,11 @@ public class Arm extends SubsystemBase {
         inputLocked = !inputLocked;
     }
 
-    public void printArm() {
-        System.out.println("Arm Angle: " + getAngle());
-        System.out.println("Arm Extension: " + getExtension());
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Arm Angle Right", rotationRightEncoder.getPosition());
+        SmartDashboard.putNumber("Arm Angle Left", rotationLeftEncoder.getPosition());
+        SmartDashboard.putNumber("Arm Angle", getAngle());
+        SmartDashboard.putNumber("Arm Extension", getExtension());
     }
 }

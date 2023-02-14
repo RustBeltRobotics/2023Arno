@@ -7,35 +7,29 @@ import com.swervedrivespecialties.swervelib.Mk4ModuleConfiguration;
 import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
 import com.swervedrivespecialties.swervelib.SwerveModule;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Utilities;
 
 import static frc.robot.Constants.*;
 
 public class Drivetrain extends SubsystemBase {
-    // Creates a swerve kinematics object, to convert desired chassis velocity into individual module states
-    private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
-            new Translation2d(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0),
-            new Translation2d(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0),
-            new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0),
-            new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0));
 
     // The important thing about how you configure your gyroscope is that rotating
     // the robot counter-clockwise should cause the angle reading to increase until
     // it wraps back over to zero.
-    private final AHRS navx = new AHRS(SPI.Port.kMXP, (byte) 200); // NavX connected over MXP
-
+    public final AHRS navx = new AHRS(SPI.Port.kMXP, (byte) 200); // NavX connected over MXP
+    // FIXME: Move this to robotContainer or Robot at some point.
+    
     // This is used to set the current limits
     private Mk4ModuleConfiguration swerveConfiguration = new Mk4ModuleConfiguration();
     
-
     // These are our modules. We initialize them in the constructor.
     private final SwerveModule frontLeftModule;
     private final SwerveModule frontRightModule;
@@ -140,9 +134,9 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(chassisSpeeds);
+        SwerveModuleState[] states = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
-        if (!wheelsLocked) {
+        if (wheelsLocked == false) {
             frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[0].angle.getRadians());
             frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[1].angle.getRadians());
             backLeftModule.set(states[2].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[2].angle.getRadians());
@@ -154,5 +148,12 @@ public class Drivetrain extends SubsystemBase {
             backLeftModule.set(0, -Math.toRadians(45));
             backRightModule.set(0, Math.toRadians(45));
         }
+        SmartDashboard.putNumber("Pitch", navx.getPitch());
+        SmartDashboard.putNumber("Roll", navx.getRoll());
+        SmartDashboard.putNumber("Yaw", navx.getYaw());
+
+        SmartDashboard.putNumber("X Velocity", chassisSpeeds.vxMetersPerSecond);
+        SmartDashboard.putNumber("Y Velocity", chassisSpeeds.vyMetersPerSecond);
+        SmartDashboard.putNumber("R Velocity", chassisSpeeds.omegaRadiansPerSecond);
     }
 }
