@@ -1,130 +1,312 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMax.SoftLimitDirection;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
+import com.revrobotics.RelativeEncoder;
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Utilities;
 
 import static frc.robot.Constants.*;
 
-
 public class Arm extends SubsystemBase {
+    // Motor controllers
+    private final CANSparkMax rotationSparkMaxLeft;
+    private final CANSparkMax rotationSparkMaxRight;
+    private final CANSparkMax extensionSparkMax;
 
-    private boolean inputLocked = false;
-
-    private CANSparkMax rotationSparkMaxLeft;
-    private CANSparkMax rotationSparkMaxRight;
-    private CANSparkMax extensionSparkMax;
-
-    private RelativeEncoder rotationLeftEncoder;
-    private RelativeEncoder rotationRightEncoder;
-    private RelativeEncoder extensionEncoder;
+    // Motor built-in encoders
+    private final RelativeEncoder rotationLeftEncoder;
+    private final RelativeEncoder rotationRightEncoder;
+    private final RelativeEncoder extensionEncoder;
+ 
+    // PID controllers
+    private final PIDController rotationPID;
+    private final PIDController extensionPID;
+ 
+    // Feedforward controllers
+    private final ArmFeedforward rotationFF;
+    private final ArmFeedforward extensionFF;
 
     public Arm() {
+        // Setup the SparkMax objects and encoders. Note that we set all of the
+        // important settings in code, even though in theory, these should all be burned
+        // to the flash memory already. This is a redundancy for if we forget to burn
+        // settings if we need to replace a broken unit.
         rotationSparkMaxLeft = new CANSparkMax(LEFT_ARM_MOTOR, MotorType.kBrushless);
         rotationSparkMaxLeft.restoreFactoryDefaults();
         rotationSparkMaxLeft.setIdleMode(IdleMode.kBrake);
-        rotationSparkMaxLeft.setInverted(true);
+        rotationSparkMaxLeft.setInverted(false);
         rotationSparkMaxLeft.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
         rotationSparkMaxLeft.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
-        rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_ANGLE_DEGREES);
-        rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kReverse, MIN_ARM_ANGLE_DEGREES);
+        // rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kForward, (float) MAX_ARM_ANGLE_DEGREES);
+        // rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kReverse, (float) MIN_ARM_ANGLE_DEGREES);
+        // rotationSparkMaxLeft.enableSoftLimit(SoftLimitDirection.kForward, true);
+        // rotationSparkMaxLeft.enableSoftLimit(SoftLimitDirection.kReverse, true);
         rotationLeftEncoder = rotationSparkMaxLeft.getEncoder();
         rotationLeftEncoder.setPositionConversionFactor(ARM_ROTATION_CONVERSION);
-
+        rotationLeftEncoder.setVelocityConversionFactor(ARM_ROTATION_CONVERSION / 60.);
+        
         rotationSparkMaxRight = new CANSparkMax(RIGHT_ARM_MOTOR, MotorType.kBrushless);
         rotationSparkMaxRight.restoreFactoryDefaults();
-        rotationSparkMaxRight.setIdleMode(IdleMode.kBrake);
-        rotationSparkMaxRight.setInverted(false);
+        rotationSparkMaxRight.setIdleMode(IdleMode.kBrake); 
+        rotationSparkMaxRight.setInverted(true);
         rotationSparkMaxRight.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
         rotationSparkMaxRight.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
-        rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_ANGLE_DEGREES);
-        rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kReverse, MIN_ARM_ANGLE_DEGREES);
+        // rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kForward, (float) MAX_ARM_ANGLE_DEGREES);
+        // rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kReverse, (float) MIN_ARM_ANGLE_DEGREES);
+        // rotationSparkMaxRight.enableSoftLimit(SoftLimitDirection.kForward, true);
+        // rotationSparkMaxRight.enableSoftLimit(SoftLimitDirection.kReverse, true);
         rotationRightEncoder = rotationSparkMaxRight.getEncoder();
         rotationRightEncoder.setPositionConversionFactor(ARM_ROTATION_CONVERSION);
+        rotationRightEncoder.setVelocityConversionFactor(ARM_ROTATION_CONVERSION / 60.);
         
         extensionSparkMax = new CANSparkMax(ARM_EXTENSION_MOTOR, MotorType.kBrushless);
         extensionSparkMax.restoreFactoryDefaults();
         extensionSparkMax.setIdleMode(IdleMode.kBrake);
-        extensionSparkMax.setInverted(false); // FIXME: Confirm polarity
-        extensionSparkMax.setSmartCurrentLimit(NEO550_SMART_CURRENT_LIMIT);
-        extensionSparkMax.setSecondaryCurrentLimit(NEO550_SECONDARY_CURRENT_LIMIT);
-        extensionSparkMax.setSoftLimit(SoftLimitDirection.kForward, MAX_ARM_EXTENSION_INCHES);
-        extensionSparkMax.setSoftLimit(SoftLimitDirection.kReverse, MIN_ARM_EXTENSION_INCHES);
+        extensionSparkMax.setInverted(true);
+        extensionSparkMax.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
+        extensionSparkMax.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
+        extensionSparkMax.setSoftLimit(SoftLimitDirection.kForward, (float) MAX_ARM_EXTENSION_INCHES);
+        extensionSparkMax.setSoftLimit(SoftLimitDirection.kReverse, (float) MIN_ARM_EXTENSION_INCHES);
+        extensionSparkMax.enableSoftLimit(SoftLimitDirection.kForward, true);
+        extensionSparkMax.enableSoftLimit(SoftLimitDirection.kReverse, true);
         extensionEncoder = extensionSparkMax.getEncoder();
         extensionEncoder.setPositionConversionFactor(ARM_EXTENSION_CONVERSION);
+        extensionEncoder.setVelocityConversionFactor(ARM_EXTENSION_CONVERSION / 60.);
+        
+        // Setup PID and feedforward controllers
+        double rP = ARM_ROTATION_P;
+        double rI = ARM_ROTATION_I;
+        double rD = ARM_ROTATION_D;
+        rotationPID = new PIDController(rP, rI, rD);
+        // SmartDashboard.putNumber("rP", rP);
+        // SmartDashboard.putNumber("rI", rI);
+        // SmartDashboard.putNumber("rD", rD);
+
+
+        double eP = ARM_EXTENSION_P;
+        double eI = ARM_EXTENSION_I;
+        double eD = ARM_EXTENSION_D;
+        extensionPID = new PIDController(eP, eI, eD);
+        // SmartDashboard.putNumber("eP", eP);
+        // SmartDashboard.putNumber("eI", eI);
+        // SmartDashboard.putNumber("eD", eD);
+
+        rotationFF = new ArmFeedforward(ARM_ROTATION_S, ARM_ROTATION_G, ARM_ROTATION_V, ARM_ROTATION_A);
+        extensionFF = new ArmFeedforward(ARM_EXTENSION_S, ARM_EXTENSION_G, ARM_EXTENSION_V, ARM_EXTENSION_A);
     }
 
+    /**
+     * Drives the arm at the commanded rotation and extension velocities.
+     * 
+     * @param rotationRate  The rate (-1 to 1) at which to rotate the arm. Positive
+     *                      is towards the front of the robot.
+     * @param extensionRate The rate (-1 to 1) at which to extend or retract the
+     *                      arm. Positive is extension.
+     */
     public void driveArm(double rotationRate, double extensionRate) {
-        // if (inputLocked == true) {
-        //     rotationRate = 0;
-        //     extensionRate = 0;
-        // } else {
-            // if (getAngle() >= MAX_ARM_ANGLE_DEGREES) {
-            //     rotationRate = Utilities.clamp(rotationRate, Double.MIN_VALUE, 0);
-            // } else if (getAngle() <= -MAX_ARM_ANGLE_DEGREES) {
-            //     rotationRate = Utilities.clamp(rotationRate, 0, Double.MAX_VALUE);
-            // }
-            // if (getExtension() >= calculateMaxExtension(getAngle())) {
-            //     extensionRate = Utilities.clamp(extensionRate, Double.MIN_VALUE, 0);
-            //     if (getAngle() > 0) {
-            //         rotationRate = Utilities.clamp(rotationRate, 0, Double.MAX_VALUE);
-            //     } else {
-            //         rotationRate = Utilities.clamp(rotationRate, Double.MIN_VALUE, 0);
-            //     }
-            // }
-        // }
-        rotationSparkMaxLeft.set(rotationRate / MAX_ARM_VELOCITY_DEGREES_PER_SECOND);
-        rotationSparkMaxRight.set(rotationRate / MAX_ARM_VELOCITY_DEGREES_PER_SECOND);
-        extensionSparkMax.set(extensionRate / MAX_ARM_VELOCITY_INCHES_PER_SECOND);
+        // Make sure the commanded rates aren't going to damage the robot
+        double[] rates = checkDriveRates(rotationRate, extensionRate);
+
+        // Scale to max battery voltage
+        rotationRate = rates[0] * MAX_VOLTAGE;
+        extensionRate = rates[1] * MAX_VOLTAGE;
+        
+        // Apply voltages to the motors
+        rotationSparkMaxLeft.setVoltage(rotationRate);
+        rotationSparkMaxRight.setVoltage(rotationRate);
+        extensionSparkMax.setVoltage(extensionRate);
     }
 
-    public void driveArmTo(double angle, double extension) {
-        double rotationRate = (angle - getAngle()) / (2 * MAX_ARM_ANGLE_DEGREES);
-        rotationRate = Utilities.deadband(rotationRate, 0.05) * MAX_ARM_VELOCITY_DEGREES_PER_SECOND;
-        
-        double extensionRate = (extension - getExtension()) / MAX_ARM_EXTENSION_INCHES;
-        extensionRate = Utilities.deadband(extensionRate, 0.05) * MAX_ARM_VELOCITY_INCHES_PER_SECOND;
-        
-        driveArm(rotationRate, extensionRate);
+    /**
+     * Uses a feedforward controller and a PID controller to drive the arm to a
+     * commanded angle. Sets the extension rate to zero to keep rotation and
+     * extension separate.
+     * 
+     * @param angle The angle to rotate the arm to. Straight down is 0 degress,
+     *              positive is towards the front of the robot.
+     * @return The command for driving to the desired angle.
+     */
+    public Command driveRotationTo(double angle) {
+        return new FunctionalCommand(
+            // initialize(): reset PID controller and set setpoint
+            () -> {
+                rotationPID.reset();
+                rotationPID.setSetpoint(angle);
+            },
+            // execute(): drive arm with rotation velocity calculated by PID controller and
+            // zero extension velocity
+            () -> {
+                // Calculate feedforward contribution
+                double rotationRateFF = rotationFF.calculate(angle, 0., 0.);
+                // Calculate PID contribution
+                double rotationRatePID = rotationPID.calculate(getAngle(), angle);
+                // Combine indiviudal contributions
+                double rotationRate = rotationRateFF + rotationRatePID;
+                // Ensure no extension velocity
+                double extensionRate = 0.;
+                // Drive arm
+                driveArm(rotationRate, extensionRate);
+            },
+            // end(): set arm voltages to zero
+            interupted -> driveArm(0., 0.),
+            // isFinished(): check if PID controller is at setpoint
+            () -> rotationPID.atSetpoint(),
+            // Require the arm subsystem
+            this
+        );
     }
 
-    private double getAngle() {
+    /**
+     * Uses a feedforward controller and a PID controller to drive the arm to a
+     * commanded extension. Sets the rotation rate to zero to keep rotation and
+     * extension separate.
+     * 
+     * @param extension The extension to move the arm to. Fully retracted is 0,
+     *                  positive is exteneded.
+     * @return The command for driving to the desired extension.
+     */
+    public Command driveExtensionTo(double extension) {
+        return new FunctionalCommand(
+            // initialize(): reset PID controller and set setpoint
+            () -> {
+                extensionPID.reset();
+                extensionPID.setSetpoint(extension);
+            },
+            // execute(): drive arm with extension velocity calculated by PID controller and
+            // zero rotation velocity
+            () -> {
+                // Ensure no rotation velocity
+                double rotationRate = 0.;
+                // Calculate feedforward contribution
+                double extensionRateFF = extensionFF.calculate(extension, 0., 0.);
+                // Calculate PID contribution
+                double extensionRatePID = extensionPID.calculate(getExtension(), extension);
+                // Combine indiviudal contributions
+                double extensionRate = extensionRateFF + extensionRatePID;
+                // Drive arm
+                driveArm(rotationRate, extensionRate);
+            },
+            // end(): set arm voltages to zero
+            interupted -> driveArm(0., 0.),
+            // isFinished(): check if PID controller is at setpoint
+            () -> extensionPID
+                    .atSetpoint(),
+            // Require the arm subsystem
+            this
+        );
+    }
+
+    /**
+     * Drives the arm to a commanded angle and extension via a sequential command
+     * where the arm is first fully retracted, then it is rotated to the commanded
+     * angle, and finally extended to the commanded extension.
+     * 
+     * @param angle     The angle to rotate the arm to. Straight down is 0 degress,
+     *                  positive is towards the front of the robot.
+     * @param extension The extension to move the arm to. Fully retracted is 0,
+     *                  positive is exteneded.
+     * @return The command for driving to the desired angle and extension
+     */
+    public Command driveArmTo(double angle, double extension) {
+        return new SequentialCommandGroup(
+            driveExtensionTo(0.),
+            driveRotationTo(angle),
+            driveExtensionTo(extension)
+        );
+    }
+
+    /**
+     * Drives the arm to a the center of the robot and fully retracted via a
+     * sequential command where the arm is first fully retracted and then it is
+     * rotated to zero degrees.
+     * 
+     * @return The command for driving to center retracted
+     */
+    public Command centerArm() {
+        return new SequentialCommandGroup(
+                driveExtensionTo(0.),
+                driveRotationTo(0.)
+        );
+    }
+
+    /**
+     * Returns the current angle of the arm by averaging the two motor encoders.
+     * 
+     * @return The current arm angle in degrees. Straight down is 0 degress,
+     *         positive is towards the front of the robot.
+     */
+    public double getAngle() {
         double averageAngle = (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
         return averageAngle;
     }
 
-    private double getExtension() {
+    /**
+     * Returns the current arm extension by reading the motor encoder.
+     * 
+     * @return The current arm extension. Fully retracted is 0, positive is
+     *         exteneded.
+     */
+    public double getExtension() {
         double extension = extensionEncoder.getPosition();
         return extension;
     }
 
+
+    private double[] checkDriveRates(double rotationRate, double extensionRate) {
+        calculateMaxExtension(getAngle());
+        // if (getExtension() >= calculateMaxExtension(getAngle())) {
+        //     extensionRate = MathUtil.clamp(extensionRate, Double.MIN_VALUE, 0);
+        //     if (getAngle() > 0) {
+        //         rotationRate = MathUtil.clamp(rotationRate, 0, Double.MAX_VALUE);
+        //     } else {
+        //         rotationRate = MathUtil.clamp(rotationRate, Double.MIN_VALUE, 0);
+        //     }
+        // }
+        double[] rates = { rotationRate, extensionRate };
+        return rates;
+    }
+
+    /**
+     * Calculates the max allowable extension of the arm at a given angle.
+     * TODO: Right now this just returns the abosulte max extension regardless of
+     * angle. As the robot is finalized, we will need to flesh this out.
+     * 
+     * @param angle The angle for which the max allowable extension is calculated.
+     * @return The max allowable extension at the input angle.
+     */
     private double calculateMaxExtension(double angle) {
-        angle = Math.abs(angle);
-
-        if (angle < ARM_FRAME_PERIMITER_ANGLE_DEGRESS) {
-            return 0; // FIXME: We might need to allow some small amount of extension, so that we can pick up game pieces that are inside the robot
-        } else if (angle < ARM_GROUND_ANGLE_DEGRESS) {
-            return 1; // FIXME: correct trig/geo
-        } else {
-            return MAX_ARM_EXTENSION_INCHES;
-        }
+        return MAX_ARM_EXTENSION_INCHES;
     }
 
-    public void lockOutInput() {
-        inputLocked = !inputLocked;
-    }
-
+    /**
+     * This method is run every 20 ms.
+     */
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Arm Angle Right", rotationRightEncoder.getPosition());
         SmartDashboard.putNumber("Arm Angle Left", rotationLeftEncoder.getPosition());
         SmartDashboard.putNumber("Arm Angle", getAngle());
         SmartDashboard.putNumber("Arm Extension", getExtension());
+
+        // double rP = SmartDashboard.getNumber("rP", ARM_ROTATION_P);
+        // double rI = SmartDashboard.getNumber("rI", ARM_ROTATION_I);
+        // double rD = SmartDashboard.getNumber("rD", ARM_ROTATION_D);
+
+        // rotationPID.setPID(rP, rI, rD);
+
+        // double eP = SmartDashboard.getNumber("eP", ARM_EXTENSION_P);
+        // double eI = SmartDashboard.getNumber("eI", ARM_EXTENSION_I);
+        // double eD = SmartDashboard.getNumber("eD", ARM_EXTENSION_D);
+
+        // extensionPID.setPID(eP, eI, eD);
+
     }
 }
