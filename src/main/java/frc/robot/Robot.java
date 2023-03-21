@@ -1,10 +1,7 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 /**
@@ -16,10 +13,11 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends TimedRobot {
     private RobotContainer robotContainer;
+    private Command autonomousCommand;
 
     /**
-     * This function is run when the robot is first started up and should be used
-     * for any initialization code.
+     * This function is run once when the robot is first started up and should be
+     * used for any initialization code.
      */
     @Override
     public void robotInit() {
@@ -30,7 +28,6 @@ public class Robot extends TimedRobot {
      * This function is called every 20 ms, no matter the mode. Use this for items
      * like diagnostics that you want ran during disabled, autonomous, teleoperated
      * and test.
-     *
      * <p>
      * This runs after the mode specific periodic functions, but before LiveWindow
      * and SmartDashboard integrated updating.
@@ -41,59 +38,69 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * This autonomous (along with the chooser code above) shows how to select
-     * between different autonomous modes using the dashboard. The sendable chooser
-     * code works with the Java SmartDashboard. If you prefer the LabVIEW Dashboard,
-     * remove all of the chooser code and uncomment the getString line to get the
-     * auto name from the text box below the Gyro
-     *
-     * <p>
-     * You can add additional auto modes by adding additional comparisons to the
-     * switch structure below with additional strings. If using the SendableChooser
-     * make sure to add them to the chooser code above as well.
+     * This function is called once at the start of autonomous. It should be used to
+     * send the correct autonomous routine to the command scheduler.
      */
     @Override
-    public void autonomousInit() {}
+    public void autonomousInit() {
+        // TODO: once we have multiple routines, add a chooser to the dashboard
+        autonomousCommand = robotContainer.getAutonomousCommand();
+        if (autonomousCommand != null) {
+            autonomousCommand.schedule();
+        }
+    }
 
     /** This function is called periodically during autonomous. */
     @Override
-    public void autonomousPeriodic() {}
+    public void autonomousPeriodic() {
+    }
 
     /** This function is called once when teleop is enabled. */
     @Override
-    public void teleopInit() {}
+    public void teleopInit() {
+        if (autonomousCommand != null) {
+            autonomousCommand.cancel();
+        }
+    }
 
     /** This function is called periodically during operator control. */
     @Override
-    public void teleopPeriodic() {}
+    public void teleopPeriodic() {
+    }
 
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
-        // FIXME: Add code here to put the robot in coast mode >5 seconds after robot is disabled
-        // I think I posted a link to the issue in GitHub related to how we can do this
+        // TODO: Add code to put the robot in coast mode >5 seconds after disabled
+        // I think I posted a link to the issue in GitHub related to how we can do this.
+        // On second though, this is going to be tough to do since we are not creating
+        // our own CANSparkMax objects for the drive train. The arm should be easy
+        // enough
     }
 
     /** This function is called periodically when disabled. */
     @Override
-    public void disabledPeriodic() {}
+    public void disabledPeriodic() {
+    }
 
     /** This function is called once when test mode is enabled. */
     @Override
     public void testInit() {
-        // FIXME: Add code to check the state of all Spark Max's flash memory
-        // Burn to flash any that don't match what they should
+        CommandScheduler.getInstance().cancelAll();
     }
 
     /** This function is called periodically during test mode. */
     @Override
-    public void testPeriodic() {}
+    public void testPeriodic() {
+    }
 
     /** This function is called once when the robot is first started up. */
     @Override
-    public void simulationInit() {}
+    public void simulationInit() {
+    }
 
     /** This function is called periodically whilst in simulation. */
     @Override
-    public void simulationPeriodic() {}
+    public void simulationPeriodic() {
+    }
 }

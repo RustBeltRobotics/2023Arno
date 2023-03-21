@@ -7,9 +7,9 @@ import java.util.function.DoubleSupplier;
 
 /**
  * This command is used to drive the robot with a coordinate system that is
- * relative to the field, not the robot.
+ * relative to the robot, not the field.
  */
-public class FieldOrientedDriveCommand extends CommandBase {
+public class RobotOrientedDriveCommand extends CommandBase {
     private final Drivetrain drivetrain;
 
     // DoubleSupplier objects need to be used, not double
@@ -17,7 +17,7 @@ public class FieldOrientedDriveCommand extends CommandBase {
     private final DoubleSupplier translationYSupplier;
     private final DoubleSupplier rotationSupplier;
 
-    public FieldOrientedDriveCommand(Drivetrain drivetrain,
+    public RobotOrientedDriveCommand(Drivetrain drivetrain,
             DoubleSupplier translationXSupplier,
             DoubleSupplier translationYSupplier,
             DoubleSupplier rotationSupplier) {
@@ -38,11 +38,10 @@ public class FieldOrientedDriveCommand extends CommandBase {
      */
     @Override
     public void execute() {
-        drivetrain.drive(ChassisSpeeds.fromFieldRelativeSpeeds(
+        drivetrain.drive(new ChassisSpeeds(
             translationXSupplier.getAsDouble(),
             translationYSupplier.getAsDouble(),
-            rotationSupplier.getAsDouble(),
-            drivetrain.getGyroscopeRotation()
+            rotationSupplier.getAsDouble()
         ));
     }
 
