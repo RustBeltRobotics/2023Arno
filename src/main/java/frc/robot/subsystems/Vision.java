@@ -17,9 +17,9 @@ public class Vision extends SubsystemBase {
     private double getDistanceX(PhotonTrackedTarget target) {
             double pitch = target.getPitch();
             int id = target.getFiducialId();
-            double tagHeight = TAG_HEIGHT[id];
+            double tagHeight = TAG_Z[id - 1];
             
-            double range = PhotonUtils.calculateDistanceToTargetMeters(CAMERA_HEIGHT, tagHeight, CAMERA_PITCH, pitch);
+            double range = PhotonUtils.calculateDistanceToTargetMeters(CAMERA_Z, tagHeight, CAMERA_PITCH, pitch);
             
             return range;
     }
@@ -33,11 +33,26 @@ public class Vision extends SubsystemBase {
         return strafe;
     }
 
-    public double[] getRelativeLocation() {
+    // public double[] getRelativeLocation() {
+    //     PhotonPipelineResult result = aprilTagCamera.getLatestResult();
+    //     if (result.hasTargets()) {
+    //         PhotonTrackedTarget target = result.getBestTarget();
+    //         double[] location = {getDistanceX(target), getDistanceY(target)};
+    //         return location;
+    //     }
+    //     return null;
+    // }
+
+    public double[] getFieldLocation() {
         PhotonPipelineResult result = aprilTagCamera.getLatestResult();
         if (result.hasTargets()) {
             PhotonTrackedTarget target = result.getBestTarget();
-            double[] location = {getDistanceX(target), getDistanceY(target)};
+            int id = target.getFiducialId();
+            double xRel = getDistanceX(target);
+            double yRel = getDistanceY(target);
+            double xPos = xRel + TAG_X[id - 1];
+            double yPos = yRel + TAG_Y[id - 1];
+            double[] location = {xPos, yPos};
             return location;
         }
         return null;
@@ -45,5 +60,5 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
-}
+    }
 }

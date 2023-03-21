@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.sensors.AbsoluteSensorRange;
+import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMax.SoftLimitDirection;
@@ -7,6 +9,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
@@ -14,6 +17,8 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.*;
+
+import java.util.function.DoubleSupplier;
 
 public class Arm extends SubsystemBase {
     // Motor controllers
@@ -25,6 +30,9 @@ public class Arm extends SubsystemBase {
     private final RelativeEncoder rotationLeftEncoder;
     private final RelativeEncoder rotationRightEncoder;
     private final RelativeEncoder extensionEncoder;
+
+    // Absolute CANEncoder
+    private final CANCoder rotationAbsoluteEncoder;
  
     // PID controllers
     private final PIDController rotationPID;
@@ -33,6 +41,8 @@ public class Arm extends SubsystemBase {
     // Feedforward controllers
     private final ArmFeedforward rotationFF;
     private final ArmFeedforward extensionFF;
+
+    private final Timer timer;
 
     public Arm() {
         // Setup the SparkMax objects and encoders. Note that we set all of the
@@ -45,10 +55,10 @@ public class Arm extends SubsystemBase {
         rotationSparkMaxLeft.setInverted(false);
         rotationSparkMaxLeft.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
         rotationSparkMaxLeft.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
-        // rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kForward, (float) MAX_ARM_ANGLE_DEGREES);
-        // rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kReverse, (float) MIN_ARM_ANGLE_DEGREES);
-        // rotationSparkMaxLeft.enableSoftLimit(SoftLimitDirection.kForward, true);
-        // rotationSparkMaxLeft.enableSoftLimit(SoftLimitDirection.kReverse, true);
+        rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kForward, (float) MAX_ARM_ANGLE_DEGREES);
+        rotationSparkMaxLeft.setSoftLimit(SoftLimitDirection.kReverse, (float) MIN_ARM_ANGLE_DEGREES);
+        rotationSparkMaxLeft.enableSoftLimit(SoftLimitDirection.kForward, true);
+        rotationSparkMaxLeft.enableSoftLimit(SoftLimitDirection.kReverse, true);
         rotationLeftEncoder = rotationSparkMaxLeft.getEncoder();
         rotationLeftEncoder.setPositionConversionFactor(ARM_ROTATION_CONVERSION);
         rotationLeftEncoder.setVelocityConversionFactor(ARM_ROTATION_CONVERSION / 60.);
@@ -59,10 +69,10 @@ public class Arm extends SubsystemBase {
         rotationSparkMaxRight.setInverted(true);
         rotationSparkMaxRight.setSmartCurrentLimit(NEO_SMART_CURRENT_LIMIT);
         rotationSparkMaxRight.setSecondaryCurrentLimit(NEO_SECONDARY_CURRENT_LIMIT);
-        // rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kForward, (float) MAX_ARM_ANGLE_DEGREES);
-        // rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kReverse, (float) MIN_ARM_ANGLE_DEGREES);
-        // rotationSparkMaxRight.enableSoftLimit(SoftLimitDirection.kForward, true);
-        // rotationSparkMaxRight.enableSoftLimit(SoftLimitDirection.kReverse, true);
+        rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kForward, (float) MAX_ARM_ANGLE_DEGREES);
+        rotationSparkMaxRight.setSoftLimit(SoftLimitDirection.kReverse, (float) MIN_ARM_ANGLE_DEGREES);
+        rotationSparkMaxRight.enableSoftLimit(SoftLimitDirection.kForward, true);
+        rotationSparkMaxRight.enableSoftLimit(SoftLimitDirection.kReverse, true);
         rotationRightEncoder = rotationSparkMaxRight.getEncoder();
         rotationRightEncoder.setPositionConversionFactor(ARM_ROTATION_CONVERSION);
         rotationRightEncoder.setVelocityConversionFactor(ARM_ROTATION_CONVERSION / 60.);
@@ -80,27 +90,25 @@ public class Arm extends SubsystemBase {
         extensionEncoder = extensionSparkMax.getEncoder();
         extensionEncoder.setPositionConversionFactor(ARM_EXTENSION_CONVERSION);
         extensionEncoder.setVelocityConversionFactor(ARM_EXTENSION_CONVERSION / 60.);
+
+        // Setup steer motor relative encoder
+        rotationAbsoluteEncoder = new CANCoder(ARM_ABSOLUTE_ENCODER);
+        rotationAbsoluteEncoder.configMagnetOffset(ARM_ABSOLUTE_OFFSET);   
+        rotationAbsoluteEncoder.configSensorDirection(false);
+        rotationAbsoluteEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
         
         // Setup PID and feedforward controllers
-        double rP = ARM_ROTATION_P;
-        double rI = ARM_ROTATION_I;
-        double rD = ARM_ROTATION_D;
-        rotationPID = new PIDController(rP, rI, rD);
-        // SmartDashboard.putNumber("rP", rP);
-        // SmartDashboard.putNumber("rI", rI);
-        // SmartDashboard.putNumber("rD", rD);
+        rotationPID = new PIDController(ARM_ROTATION_P, ARM_ROTATION_I, ARM_ROTATION_D);
+        rotationPID.setTolerance(ARM_ROTATION_TOLERANCE);
 
-
-        double eP = ARM_EXTENSION_P;
-        double eI = ARM_EXTENSION_I;
-        double eD = ARM_EXTENSION_D;
-        extensionPID = new PIDController(eP, eI, eD);
-        // SmartDashboard.putNumber("eP", eP);
-        // SmartDashboard.putNumber("eI", eI);
-        // SmartDashboard.putNumber("eD", eD);
+        extensionPID = new PIDController(ARM_EXTENSION_P, ARM_EXTENSION_I, ARM_EXTENSION_D);
+        extensionPID.setTolerance(ARM_EXTENSION_TOLERANCE);
 
         rotationFF = new ArmFeedforward(ARM_ROTATION_S, ARM_ROTATION_G, ARM_ROTATION_V, ARM_ROTATION_A);
         extensionFF = new ArmFeedforward(ARM_EXTENSION_S, ARM_EXTENSION_G, ARM_EXTENSION_V, ARM_EXTENSION_A);
+
+        timer = new Timer();
+        timer.start();
     }
 
     /**
@@ -134,20 +142,20 @@ public class Arm extends SubsystemBase {
      *              positive is towards the front of the robot.
      * @return The command for driving to the desired angle.
      */
-    public Command driveRotationTo(double angle) {
+    public Command driveRotationTo(DoubleSupplier angle) {
         return new FunctionalCommand(
             // initialize(): reset PID controller and set setpoint
             () -> {
                 rotationPID.reset();
-                rotationPID.setSetpoint(angle);
+                rotationPID.setSetpoint(angle.getAsDouble());
             },
             // execute(): drive arm with rotation velocity calculated by PID controller and
             // zero extension velocity
             () -> {
                 // Calculate feedforward contribution
-                double rotationRateFF = rotationFF.calculate(angle, 0., 0.);
+                double rotationRateFF = rotationFF.calculate(angle.getAsDouble(), 0., 0.);
                 // Calculate PID contribution
-                double rotationRatePID = rotationPID.calculate(getAngle(), angle);
+                double rotationRatePID = rotationPID.calculate(getAngle(), angle.getAsDouble());
                 // Combine indiviudal contributions
                 double rotationRate = rotationRateFF + rotationRatePID;
                 // Ensure no extension velocity
@@ -173,12 +181,12 @@ public class Arm extends SubsystemBase {
      *                  positive is exteneded.
      * @return The command for driving to the desired extension.
      */
-    public Command driveExtensionTo(double extension) {
+    public Command driveExtensionTo(DoubleSupplier extension) {
         return new FunctionalCommand(
             // initialize(): reset PID controller and set setpoint
             () -> {
                 extensionPID.reset();
-                extensionPID.setSetpoint(extension);
+                extensionPID.setSetpoint(extension.getAsDouble());
             },
             // execute(): drive arm with extension velocity calculated by PID controller and
             // zero rotation velocity
@@ -186,9 +194,9 @@ public class Arm extends SubsystemBase {
                 // Ensure no rotation velocity
                 double rotationRate = 0.;
                 // Calculate feedforward contribution
-                double extensionRateFF = extensionFF.calculate(extension, 0., 0.);
+                double extensionRateFF = extensionFF.calculate(extension.getAsDouble(), 0., 0.);
                 // Calculate PID contribution
-                double extensionRatePID = extensionPID.calculate(getExtension(), extension);
+                double extensionRatePID = extensionPID.calculate(getExtension(), extension.getAsDouble());
                 // Combine indiviudal contributions
                 double extensionRate = extensionRateFF + extensionRatePID;
                 // Drive arm
@@ -215,9 +223,9 @@ public class Arm extends SubsystemBase {
      *                  positive is exteneded.
      * @return The command for driving to the desired angle and extension
      */
-    public Command driveArmTo(double angle, double extension) {
+    public Command driveArmTo(DoubleSupplier angle, DoubleSupplier extension) {
         return new SequentialCommandGroup(
-            driveExtensionTo(0.),
+            driveExtensionTo(() -> 0.),
             driveRotationTo(angle),
             driveExtensionTo(extension)
         );
@@ -232,8 +240,8 @@ public class Arm extends SubsystemBase {
      */
     public Command centerArm() {
         return new SequentialCommandGroup(
-                driveExtensionTo(0.),
-                driveRotationTo(0.)
+                driveExtensionTo(() -> 0.),
+                driveRotationTo(() -> 0.)
         );
     }
 
@@ -244,8 +252,7 @@ public class Arm extends SubsystemBase {
      *         positive is towards the front of the robot.
      */
     public double getAngle() {
-        double averageAngle = (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
-        return averageAngle;
+        return (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
     }
 
     /**
@@ -255,10 +262,8 @@ public class Arm extends SubsystemBase {
      *         exteneded.
      */
     public double getExtension() {
-        double extension = extensionEncoder.getPosition();
-        return extension;
+        return extensionEncoder.getPosition();
     }
-
 
     private double[] checkDriveRates(double rotationRate, double extensionRate) {
         calculateMaxExtension(getAngle());
@@ -286,27 +291,24 @@ public class Arm extends SubsystemBase {
         return MAX_ARM_EXTENSION_INCHES;
     }
 
-    /**
-     * This method is run every 20 ms.
-     */
+    public void resetEncoders() {
+        rotationAbsoluteEncoder.setPosition(rotationAbsoluteEncoder.getAbsolutePosition());
+        rotationLeftEncoder.setPosition(rotationAbsoluteEncoder.getPosition());
+        rotationRightEncoder.setPosition(rotationAbsoluteEncoder.getPosition());
+        // extensionEncoder.setPosition(0.);
+
+    }
+
+    /** This method is run every 20 ms */
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Arm Angle Right", rotationRightEncoder.getPosition());
-        SmartDashboard.putNumber("Arm Angle Left", rotationLeftEncoder.getPosition());
-        SmartDashboard.putNumber("Arm Angle", getAngle());
-        SmartDashboard.putNumber("Arm Extension", getExtension());
-
-        // double rP = SmartDashboard.getNumber("rP", ARM_ROTATION_P);
-        // double rI = SmartDashboard.getNumber("rI", ARM_ROTATION_I);
-        // double rD = SmartDashboard.getNumber("rD", ARM_ROTATION_D);
-
-        // rotationPID.setPID(rP, rI, rD);
-
-        // double eP = SmartDashboard.getNumber("eP", ARM_EXTENSION_P);
-        // double eI = SmartDashboard.getNumber("eI", ARM_EXTENSION_I);
-        // double eD = SmartDashboard.getNumber("eD", ARM_EXTENSION_D);
-
-        // extensionPID.setPID(eP, eI, eD);
-
+        SmartDashboard.putNumber("Angle", getAngle());
+        SmartDashboard.putNumber("Extension", getExtension());
+        SmartDashboard.putNumber("Offset", rotationAbsoluteEncoder.getAbsolutePosition());
+        if (timer.get() >= 5.) {
+            resetEncoders();
+            timer.restart();
+        }
+        // SmartDashboard.putNumber("time", timer.get());
     }
 }

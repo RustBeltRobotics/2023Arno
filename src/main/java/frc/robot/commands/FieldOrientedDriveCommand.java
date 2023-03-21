@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Drivetrain;
@@ -7,9 +8,10 @@ import java.util.function.DoubleSupplier;
 
 /**
  * This command is used to drive the robot with a coordinate system that is
- * relative to the field, not the robot.
+ * relative to the field, not the robot
  */
 public class FieldOrientedDriveCommand extends CommandBase {
+    // private final Drivetrain drivetrain;
     private final Drivetrain drivetrain;
 
     // DoubleSupplier objects need to be used, not double
@@ -39,11 +41,11 @@ public class FieldOrientedDriveCommand extends CommandBase {
     @Override
     public void execute() {
         drivetrain.drive(ChassisSpeeds.fromFieldRelativeSpeeds(
-            translationXSupplier.getAsDouble(),
-            translationYSupplier.getAsDouble(),
-            rotationSupplier.getAsDouble(),
-            drivetrain.getGyroscopeRotation()
-        ));
+                translationXSupplier.getAsDouble(),
+                translationYSupplier.getAsDouble(),
+                rotationSupplier.getAsDouble(),
+                Rotation2d.fromDegrees(drivetrain.getGyroscopeAngle() + drivetrain.getGyroOffset())));
+                // drivetrain.getGyroscopeRotation()));
     }
 
     /** When the drive method is interupted, set all velocities to zero. */
