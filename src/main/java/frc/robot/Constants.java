@@ -100,20 +100,34 @@ public final class Constants {
     /** Conversion between rotations per minute and degrees per seconds */
     public static final double STEER_VELOCITY_CONVERSION = STEER_POSITION_CONVERSION / 60.;
 
-    /** This factor is applied to the maximum drive velocity during autobalancing */
-    public static final double AUTOBALANCE_SPEED_FACTOR = 0.25;
-
-    /** Time (seconds) to get to max x velocity under manual control */
-    public static final double TIME_TO_MAX_X = .1;
-    /** Time (seconds) to get to max y velocity under manual control */
-    public static final double TIME_TO_MAX_Y = .1;
-    /** Time (seconds) to get to max rotational velocity under manual control */
-    public static final double TIME_TO_MAX_R = .1;
-
     // Steer PID Constants
     public static final double STEER_P = 0.008;
     public static final double STEER_I = 0.;
     public static final double STEER_D = 0.0002;
+    
+    /** Max acceleration while balancing autonomously. Meters per second */
+    public static final double MAX_BALANCE_VELOCITY = 0.11;
+
+    /** FIXME: What are the units?? */
+    public static final double BALANCE_VELOCITY_TOLERANCE = 7; // FIXME: Confirm value
+
+    /** FIXME: What are the units?? */
+    public static final double BALANCE_ANGLE_TOLERANCE = 13; // FIXME: Confirm value
+
+    // Balance PID Constants
+    public static final double BALANCE_P = 0.25;
+
+    /** Max velocity while following a trajectory. Meters per second */
+    public static final double MAX_TRAJECTORY_VELOCITY = 3.5;
+
+    /** Max acceleration while following a trajectory. Meters per second per second */
+    public static final double MAX_TRAJECTORY_ACCELERATION = 1.25;
+
+    // Translation PID Constants
+    public static final double TRANSLATION_P = 2.;
+
+    // Rotation PID Constants
+    public static final double ROTATION_P = 2.;
 
     /** Factor applied to maximum drive velocity in manual mode, high speed mode */
     public static final double MAX_SPEED_FACTOR_HIGH = 0.8;
@@ -269,7 +283,7 @@ public final class Constants {
     public static final double FIELD_LENGTH = 651.2225 * .0254;
 
     /** Distance in meters. Half the length of the robot */
-    public static final double DRIVE_X_PRESET_SCORE_BLUE = 54.25 * .0254;
+    public static final double DRIVE_X_PRESET_SCORE_BLUE = 54.25 * .0254 + ROBOT_WIDTH / 2.;
     /** Distance in meters. Half the length of the robot */
     public static final double DRIVE_X_PRESET_SCORE_RED = FIELD_LENGTH - DRIVE_X_PRESET_SCORE_BLUE;
 
@@ -291,8 +305,8 @@ public final class Constants {
     /** Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double station right */
     public static final double[] DRIVE_X_PRESET_HUMANPLAYER_BLUE = {
         91.2685 * .0254,
-        14. * .0254,
-        14. * .0254
+        14. * .0254 + ROBOT_WIDTH / 2.,
+        14. * .0254 + ROBOT_WIDTH / 2.
     };
     /** Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double station right */
     public static final double[] DRIVE_X_PRESET_HUMANPLAYER_RED = {
@@ -303,7 +317,7 @@ public final class Constants {
 
     /** Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double station right */
     public static final double[] DRIVE_Y_PRESET_HUMANPLAYER_BLUE = {
-        315.5975 * .0254,
+        315.5975 * .0254 - ROBOT_WIDTH / 2.,
         233.6331 * .0254,
         297.1737 * .0254
     };

@@ -10,9 +10,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.commands.AutoBalanceRoutine;
+import frc.robot.commands.BalanceRobot;
 import frc.robot.commands.DefaultArmCommand;
 import frc.robot.commands.DefaultIntakeCommand;
+import frc.robot.commands.DriveToPose;
 import frc.robot.commands.FieldOrientedDriveCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
@@ -42,7 +43,7 @@ public class RobotContainer {
     // Limits maximum speed
     private double maxSpeedFactor = MAX_SPEED_FACTOR_LOW;
 
-    public static int selectedRow = 0;
+    public int selectedRow = 0;
     public int selectedCol = 0;
 
     public boolean[][] gridStatus = {
@@ -51,17 +52,15 @@ public class RobotContainer {
         {false, false, false, false, false, false, false, false, false},
     };
 
-    /** Distance in meters. */
     private final double DRIVE_X_PRESET_SCORE;
 
-    /** Distance in meters. */
     private final double[] DRIVE_Y_PRESET_SCORE;
 
-    /** Distance in meters. */
     private final double[] DRIVE_X_PRESET_HUMANPLAYER;
 
-    /** Distance in meters. */
     private final double[] DRIVE_Y_PRESET_HUMANPLAYER;
+
+    // private final double SCORE_ROTATION;
 
     public static SendableChooser<Command> autoChooser = new SendableChooser<Command>();
 
@@ -73,16 +72,17 @@ public class RobotContainer {
         // Left stick X axis -> left and right movement
         // Right stick X axis -> rotation        
         drivetrain.setDefaultCommand(new FieldOrientedDriveCommand(drivetrain,
-            () -> modifyAxis(driverController.getLeftY()) * MAX_VELOCITY_METERS_PER_SECOND * maxSpeedFactor,
-            () -> modifyAxis(driverController.getLeftX()) * MAX_VELOCITY_METERS_PER_SECOND * maxSpeedFactor,
-            () -> modifyAxis(driverController.getRightX()) * MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * maxSpeedFactor));
+            () -> -modifyAxis(driverController.getLeftY()) * MAX_VELOCITY_METERS_PER_SECOND * maxSpeedFactor,
+            () -> -modifyAxis(driverController.getLeftX()) * MAX_VELOCITY_METERS_PER_SECOND * maxSpeedFactor,
+            () -> -modifyAxis(driverController.getRightX()) * MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * maxSpeedFactor,
+            () -> driverController.getPOV()));
 
         // Set up the default command for the arm
         // Right stick Y axis -> arm rotation
         // Left stick Y axis -> arm extension
         arm.setDefaultCommand(new DefaultArmCommand(arm,
                 () -> -modifyAxis(operatorController.getLeftY()) * 1.,
-                () -> modifyAxis(operatorController.getLeftX()) * 1.));
+                () -> modifyAxis(operatorController.getLeftX()) * 1.)); // TODO we should be able to make this positive i think...
         
         // Set up the default command for the intake
         // Left trigger -> intake
@@ -91,16 +91,16 @@ public class RobotContainer {
                 () -> modifyAxis(operatorController.getRightTriggerAxis()),
                 () -> modifyAxis(operatorController.getLeftTriggerAxis())));
 
-        if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-            DRIVE_X_PRESET_SCORE = DRIVE_X_PRESET_SCORE_RED;
-            DRIVE_Y_PRESET_SCORE = DRIVE_Y_PRESET_SCORE_RED;
-            DRIVE_X_PRESET_HUMANPLAYER = DRIVE_X_PRESET_HUMANPLAYER_RED;
-            DRIVE_Y_PRESET_HUMANPLAYER = DRIVE_Y_PRESET_HUMANPLAYER_RED;
-        } else {
+        if (DriverStation.getAlliance() == DriverStation.Alliance.Blue) {
             DRIVE_X_PRESET_SCORE = DRIVE_X_PRESET_SCORE_BLUE;
             DRIVE_Y_PRESET_SCORE = DRIVE_Y_PRESET_SCORE_BLUE;
             DRIVE_X_PRESET_HUMANPLAYER = DRIVE_X_PRESET_HUMANPLAYER_BLUE;
             DRIVE_Y_PRESET_HUMANPLAYER = DRIVE_Y_PRESET_HUMANPLAYER_BLUE;
+        } else {
+            DRIVE_X_PRESET_SCORE = DRIVE_X_PRESET_SCORE_RED;
+            DRIVE_Y_PRESET_SCORE = DRIVE_Y_PRESET_SCORE_RED;
+            DRIVE_X_PRESET_HUMANPLAYER = DRIVE_X_PRESET_HUMANPLAYER_RED;
+            DRIVE_Y_PRESET_HUMANPLAYER = DRIVE_Y_PRESET_HUMANPLAYER_RED;
         }
 
         // Configure the button bindings
@@ -111,23 +111,27 @@ public class RobotContainer {
     /** Button -> command mappings are defined here. */
     private void configureButtonBindings() {
         // Driver Controller Bindings
-        // // Pressing A button zeros the gyroscope
+        // Pressing A button zeros the gyroscope
         new Trigger(driverController::getAButton).onTrue(new InstantCommand(() -> drivetrain.zeroGyroscope()));
-        // Holding B button drives the robot into scoring position
-        // new Trigger(driverController::getBButton).whileTrue(drivetrain.driveToTarget(() -> DRIVE_X_PRESET_SCORE, () -> DRIVE_Y_PRESET_SCORE[selectedCol], () -> 0.));
-        // Pressing X button toggles the wheel locks
-        // new Trigger(driverController::getXButton).onTrue(new InstantCommand(() -> drivetrain.toggleWheelsLocked()));
-        // Pressing Y button toggles autobalance mode
-        // new Trigger(driverController::getYButton).onTrue(new InstantCommand(() -> drivetrain.toggleAutoBalance()));
+        // Pressing B button drives to the single human player station
+        new Trigger(driverController::getBButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[0], () -> DRIVE_Y_PRESET_HUMANPLAYER[0], () -> 90.));
+        // Pressing X button locks the wheels in an X pattern
+        // new Trigger(driverController::getXButton).onTrue(new InstantCommand(() -> drivetrain.toggleWheelsLocked())); // FIXME
+        // Pressing Y button drives to the selected scoring position
+        new Trigger(driverController::getYButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_SCORE, () -> DRIVE_Y_PRESET_SCORE[selectedCol], () -> 0.));
+        // Pressing back button drives to the left double human player station
+        new Trigger(driverController::getBackButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[1], () -> DRIVE_Y_PRESET_HUMANPLAYER[2], () -> 0.));
+        // Pressing start button drives to the right double human player station
+        new Trigger(driverController::getStartButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[2], () -> DRIVE_Y_PRESET_HUMANPLAYER[3], () -> 0.));
         // Pressing the Right Bumper shifts to high speed
         new Trigger(driverController::getRightBumper).onTrue(new InstantCommand(() -> speedUp()));
         // Pressing the Left Bumper shifts to low speed
         new Trigger(driverController::getLeftBumper).onTrue(new InstantCommand(() -> speedDown()));
 
-        // new Trigger(driverController::getAButton).whileTrue(drivetrain.driveToTarget(() -> -1., () -> 0., () -> 0.));
-        // new Trigger(driverController::getYButton).whileTrue(drivetrain.driveToTarget(() -> 1., () -> 0., () -> 0.));
-        // new Trigger(driverController::getBButton).whileTrue(drivetrain.driveToTarget(() -> 0., () -> -1., () -> 0.));
-        // new Trigger(driverController::getXButton).whileTrue(drivetrain.driveToTarget(() -> 0., () -> 1., () -> 0.));
+        // new Trigger(driverController::getYButton).onTrue(new DriveToPose(() -> 1.,  () -> 0.,  () -> 0.));
+        // new Trigger(driverController::getAButton).onTrue(new DriveToPose(() -> -1., () -> 0.,  () -> 180.));
+        // new Trigger(driverController::getXButton).onTrue(new DriveToPose(() -> 0.,  () -> 1.,  () -> 90.));
+        // new Trigger(driverController::getBButton).onTrue(new DriveToPose(() -> 0.,  () -> -1., () -> -90.));
 
         // Operator Controller Bindings
         // Holding A button retracts and centers the arm
@@ -148,7 +152,6 @@ public class RobotContainer {
         new Trigger(operatorController::getRightBumper).onTrue(new InstantCommand(() -> intake.selectCube()));
         // D-pad is used to select a scoring node
         new Trigger(() -> operatorController.getPOV() != -1).onTrue(new InstantCommand(() -> changeSelectedScoreLocation(operatorController.getPOV())));
-        new Trigger(operatorController::getRightStickButton).onTrue(new InstantCommand(() -> arm.resetEncoders()));
     }
 
     public void configureAutos() {
@@ -161,7 +164,7 @@ public class RobotContainer {
             new WaitCommand(.25),
             new InstantCommand(() -> intake.stopIntake()),
             arm.centerArm(),
-            new AutoBalanceRoutine(drivetrain)));
+            new BalanceRobot()));
 
         autoChooser.addOption("Blue Left", new SequentialCommandGroup(
             // Move arm to middle level, spit cube, and center arm
@@ -173,8 +176,8 @@ public class RobotContainer {
             arm.centerArm()
 
             // Drive to ground cube, pick up, and center arm
-            // drivetrain.driveToTarget(() -> -5.1054, () -> 0., () -> 0.), // FIXME: Placeholder values
-            // drivetrain.driveToTarget(() -> -1, () -> 0., () -> 0.), // FIXME: Placeholder values
+            // drivetrain.driveToTarget(() -> -5.1054, () -> 0., () -> 0.),
+            // drivetrain.driveToTarget(() -> -1, () -> 0., () -> 0.),
             // new InstantCommand(() -> intake.selectCube()),
             // new InstantCommand(() -> intake.runIntake(1., true)),
             // arm.driveArmTo(() -> ARM_ANGLE_PRESET_GROUND_PICKUP[1], () -> ARM_EXTENSION_PRESET_GROUND_PICKUP[1]),
@@ -182,7 +185,7 @@ public class RobotContainer {
             // arm.centerArm(),
             
             // // Drive to grid, move arm to bottom level, spit cube, and center arm
-            // drivetrain.driveToTarget(() -> 0., () -> 0., () -> 0.), // FIXME: Placeholder values
+            // drivetrain.driveToTarget(() -> 0., () -> 0., () -> 0.),
             // arm.driveArmTo(() -> -ARM_ANGLE_PRESET_SCORE[2], () -> ARM_EXTENSION_PRESET_SCORE[2]),
             // new InstantCommand(() -> intake.runIntake(1., false), intake),
             // new WaitCommand(.25),
@@ -190,14 +193,13 @@ public class RobotContainer {
             // arm.centerArm()
         ));
 
-        autoChooser.addOption("Blue Center", null);
-        autoChooser.addOption("Blue Right", null);
-        autoChooser.addOption("Red Left", null);
-        autoChooser.addOption("Red Center", null);
-        autoChooser.addOption("Red Right", null);
+        // autoChooser.addOption("Blue Center", null);
+        // autoChooser.addOption("Blue Right", null);
+        // autoChooser.addOption("Red Left", null);
+        // autoChooser.addOption("Red Center", null);
+        // autoChooser.addOption("Red Right", null);
 
-
-        SmartDashboard.putData(autoChooser);
+        SmartDashboard.putData(autoChooser); // TODO move this to match tab
     }
 
     /**

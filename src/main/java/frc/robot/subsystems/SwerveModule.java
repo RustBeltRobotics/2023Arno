@@ -28,7 +28,7 @@ public class SwerveModule {
         driveMotor = new CANSparkMax(driveID, MotorType.kBrushless);
         driveMotor.restoreFactoryDefaults();
         driveMotor.setIdleMode(IdleMode.kBrake);
-        driveMotor.setInverted(false);
+        driveMotor.setInverted(true);
         driveMotor.setSmartCurrentLimit(DRIVE_SMART_CURRENT_LIMIT);
         driveMotor.setSecondaryCurrentLimit(DRIVE_SECONDARY_CURRENT_LIMIT);
 
@@ -50,11 +50,11 @@ public class SwerveModule {
         steerEncoder.setPositionConversionFactor(STEER_POSITION_CONVERSION);
         steerEncoder.setVelocityConversionFactor(STEER_VELOCITY_CONVERSION);
 
-        // Setup steer motor relative encoder
+        // Setup steer motor absolute encoder
         absoluteSteerEncoder = new CANCoder(encoderID);
         absoluteSteerEncoder.configMagnetOffset(offset);
 
-        // Allow PID to Loop over
+        // Allow PID to loop over
         steerPID.enableContinuousInput(0., 360.);
 
         resetEncoders();
@@ -85,6 +85,7 @@ public class SwerveModule {
         return absoluteSteerEncoder.getAbsolutePosition();
     }
 
+    /** @return Drive encoder (meters) and steer encoder (degrees) positions */
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(getDrivePosition(), new Rotation2d(Math.toRadians(getSteerPosition())));
       }
@@ -113,6 +114,14 @@ public class SwerveModule {
         state = SwerveModuleState.optimize(state, getState().angle);
         driveMotor.set(state.speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND); // TODO: Replace with tuned PID/FF
         steerMotor.set(steerPID.calculate(getSteerPosition(), state.angle.getDegrees()));
+    }
+
+    /**
+     * Locks the wheel at the provided angle
+     * @param angle degrees
+     */
+    public void lockModule(int angle) {
+        steerMotor.set(steerPID.calculate(getSteerPosition(), angle));
     }
 
     /** Set's the voltage to both motors to 0 */

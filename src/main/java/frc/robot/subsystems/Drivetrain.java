@@ -1,24 +1,19 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-
-import edu.wpi.first.math.MathUtil;
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import java.util.function.DoubleSupplier;
 
 import static frc.robot.Constants.*;
 
@@ -35,7 +30,7 @@ public class Drivetrain extends SubsystemBase {
     private final SwerveModule backLeftModule;
     private final SwerveModule backRightModule;
 
-    private final Vision vision;
+    // private final Vision vision;
 
     // The speed of the robot in x and y translational velocities and rotational velocity
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
@@ -53,12 +48,9 @@ public class Drivetrain extends SubsystemBase {
     private PIDController xController;
     private PIDController yController;
     private PIDController rController;
+    private PPHolonomicDriveController pathController;
     
-    private Timer timer;
-
-    double xP = 1.;
-    double yP = 1.;
-    double rP = .00001;
+    // private Timer timer;
 
     public Drivetrain() {
         // Initialize all modules
@@ -107,22 +99,17 @@ public class Drivetrain extends SubsystemBase {
                 });
         
         // Initialize PID Controllers
-        // TODO: Move constants to constants file
-        xController = new PIDController(xP, 0., 0.);
-        xController.setTolerance(.1);
-        yController = new PIDController(yP, 0., 0.);
-        yController.setTolerance(.1);
-        rController = new PIDController(rP, 0., 0.);
-        rController.setTolerance(.1); // FIXME: is this too aggressive?
+        xController = new PIDController(TRANSLATION_P, 0., 0.);
+        yController = new PIDController(TRANSLATION_P, 0., 0.);
+        rController = new PIDController(ROTATION_P, 0., 0.);
+        rController.enableContinuousInput(-180., 180.);
 
-        SmartDashboard.putNumber("xP", xP);
-        SmartDashboard.putNumber("yP", yP);
-        SmartDashboard.putNumber("rP", rP);
+        pathController = new PPHolonomicDriveController(xController, yController, rController);
 
-        vision = new Vision();
+        // vision = new Vision();
 
-        timer = new Timer();
-        timer.start();
+        // timer = new Timer();
+        // timer.start();
     }
 
     /**
@@ -164,6 +151,16 @@ public class Drivetrain extends SubsystemBase {
         return Rotation2d.fromDegrees(getGyroscopeAngle());
     }
 
+    /** @return Pitch in degrees, -180 to 180 */
+    public double getPitch() {
+        return navx.getPitch();
+    }
+
+    /** @return Roll in degrees, -180 to 180 */
+    public double getRoll() {
+        return navx.getRoll();
+    }
+
     public void resetOdometry(Pose2d pose) {
         odometry.resetPosition(
                 getGyroscopeRotation(),
@@ -188,6 +185,23 @@ public class Drivetrain extends SubsystemBase {
         backRightModule.setState(states[3]);
     }
 
+    public void resetTrajectoryPIDControllers() {
+        xController.reset();
+        yController.reset();
+        rController.reset();
+    }
+    
+    /**
+     * Using the desiredState and the currentState, use the pathController to find
+     * the speeds the robot should be going
+     * 
+     * @param desiredState {@link PathPlannerState} robot needs to be at
+     * @return {@link ChassisSpeeds} motors should move at to reach desired state
+     */
+    public ChassisSpeeds calculateSpeedsTraj(PathPlannerState desiredState) {
+        return pathController.calculate(getPose(), desiredState);
+    }
+
     /**
      * Used to drive the robot with the provided ChassisSpeed object. However, if
      * the robot is in autobalance mode, the ChassisSpeed object is ignored, and a
@@ -197,62 +211,62 @@ public class Drivetrain extends SubsystemBase {
      *                      drive the robot.
      */
     public void drive(ChassisSpeeds chassisSpeeds) {
-        if (!autoBalanceOn) {
+        // if (!autoBalanceOn) {
             // If we're not in autobalance mode, act normally.
             this.chassisSpeeds = chassisSpeeds;
             // this.chassisSpeeds = new ChassisSpeeds(-chassisSpeeds.vxMetersPerSecond, -chassisSpeeds.vyMetersPerSecond, -chassisSpeeds.omegaRadiansPerSecond);
-        } else {
-            // If we are in autobalance mode, calculate a new ChassisSpeed object based off
-            // the measured pitch and roll
-            this.chassisSpeeds = new ChassisSpeeds(
-                    // X velocity is proportional to the sin of the roll angle
-                    MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getRoll())), Math.toRadians(0.5))
-                            * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
-                    // Y velocity is proportional to the sin of the pitch angle
-                    MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getPitch())), Math.toRadians(0.5))
-                            * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
-                    // No rotational velocity
-                    0.0);
-        }
+        // } else {
+        //     // If we are in autobalance mode, calculate a new ChassisSpeed object based off
+        //     // the measured pitch and roll
+        //     this.chassisSpeeds = new ChassisSpeeds(
+        //             // X velocity is proportional to the sin of the roll angle
+        //             MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getRoll())), Math.toRadians(0.5))
+        //                     * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
+        //             // Y velocity is proportional to the sin of the pitch angle
+        //             MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getPitch())), Math.toRadians(0.5))
+        //                     * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
+        //             // No rotational velocity
+        //             0.0);
+        // }
     }
     
-    /**
-     * Uses a feedforward controller and a PID controller to drive the arm to a
-     * commanded extension. Sets the rotation rate to zero to keep rotation and
-     * extension separate.
-     * 
-     * @param extension The extension to move the arm to. Fully retracted is 0,
-     *                  positive is exteneded.
-     * @return The command for driving to the desired extension.
-     */
-    public Command driveToTarget(DoubleSupplier xTarget, DoubleSupplier yTarget, DoubleSupplier rTarget) {
-        return new FunctionalCommand(
-            // initialize(): reset PID controller and set setpoint
-            () -> {
-                xController.reset();
-                yController.reset();
-                rController.reset();
-                xController.setSetpoint(xTarget.getAsDouble());
-                yController.setSetpoint(yTarget.getAsDouble());
-                rController.setSetpoint(rTarget.getAsDouble());
-            },
-            // execute(): drive robot with velocities calculated by PID controllers
-            () -> {
-                // Calculate velocities
-                double xVel = xController.calculate(getPose().getX(), xTarget.getAsDouble());
-                double yVel = yController.calculate(getPose().getY(), yTarget.getAsDouble());
-                double rVel = rController.calculate(getGyroscopeAngle(), rTarget.getAsDouble());
+    // /**
+    //  * Uses a feedforward controller and a PID controller to drive the arm to a
+    //  * commanded extension. Sets the rotation rate to zero to keep rotation and
+    //  * extension separate.
+    //  * 
+    //  * @param extension The extension to move the arm to. Fully retracted is 0,
+    //  *                  positive is exteneded.
+    //  * @return The command for driving to the desired extension.
+    //  */
+    // public Command driveToTarget(DoubleSupplier xTarget, DoubleSupplier yTarget, DoubleSupplier rTarget) {
+    //     return new FunctionalCommand(
+    //         // initialize(): reset PID controller and set setpoint
+    //         () -> {
+    //             xController.reset();
+    //             yController.reset();
+    //             rController.reset();
+    //             xController.setSetpoint(xTarget.getAsDouble());
+    //             yController.setSetpoint(yTarget.getAsDouble());
+    //             rController.setSetpoint(rTarget.getAsDouble());
+    //         },
+    //         // execute(): drive robot with velocities calculated by PID controllers
+    //         () -> {
+    //             // Calculate velocities
+    //             double xVel = xController.calculate(getPose().getX(), xTarget.getAsDouble());
+    //             double yVel = yController.calculate(getPose().getY(), yTarget.getAsDouble());
+    //             double rVel = rController.calculate(getGyroscopeAngle(), rTarget.getAsDouble());
 
-                drive(new ChassisSpeeds(xVel, yVel, rVel));
-            },
-            // end(): set drive voltages to zero
-            interupted -> drive(new ChassisSpeeds(0., 0., 0.)),
-            // isFinished(): check if PID controllers are at setpoint
-            () -> (xController.atSetpoint() && yController.atSetpoint()),// FIXME: && rController.atSetpoint()),
-            // Require the drivetrain subsystem
-            this
-        );
-    }
+    //             drive(new ChassisSpeeds(xVel, yVel, rVel));
+    //         },
+    //         // end(): set drive voltages to zero
+    //         interupted -> drive(new ChassisSpeeds(0., 0., 0.)),
+    //         // isFinished(): check if PID controllers are at setpoint
+    //         () -> (xController.atSetpoint() && yController.atSetpoint() && rController.atSetpoint()),
+    //         // Require the drivetrain subsystem
+    //         this
+    //     );
+    // }
 
     /**
      * This method is run every 20 ms.
@@ -276,10 +290,10 @@ public class Drivetrain extends SubsystemBase {
             // If we are in wheel's locked mode, set the drive velocity to 0 so there is no
             // movment, and command the steer angle to either plus or minus 45 degrees to
             // form an X pattern.
-            frontLeftModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
-            frontRightModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-            backLeftModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-            backRightModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+            frontLeftModule.lockModule(45);
+            frontRightModule.lockModule(-45);
+            backLeftModule.lockModule(-45);
+            backRightModule.lockModule(45);
         }
 
         // Update the odometry
@@ -292,21 +306,16 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("X", getPose().getX());
         SmartDashboard.putNumber("Y", getPose().getY());
         SmartDashboard.putNumber("R", getGyroscopeAngle());
-
-        xP = SmartDashboard.getNumber("xP", .1);
-        yP = SmartDashboard.getNumber("yP", .1);
-        rP = SmartDashboard.getNumber("rP", .0001);
-
-        xController.setP(xP);
-        yController.setP(yP);
-        rController.setP(rP);
-
-        if (timer.get() >= 5.) {
-            double[] location = vision.getFieldLocation();
-            if (location != null) {
-                resetOdometry(new Pose2d(new Translation2d(location[0], location[1]), getGyroscopeRotation()));
-                timer.restart();
-            }
-        }
+        // if (timer.get() >= 5.) {
+            // double[] location = vision.getFieldLocation();
+            // if (location != null
+            // && Math.abs(chassisSpeeds.vxMetersPerSecond) < .1  FIXM: Tune value and move to constants
+            // && Math.abs(chassisSpeeds.vyMetersPerSecond) < .1
+            // && Math.abs(chassisSpeeds.omegaRadiansPerSecond) < .1
+            // ) {
+                // resetOdometry(new Pose2d(new Translation2d(location[0], location[1]), getGyroscopeRotation()));
+                // timer.restart();
+            // }
+        // }
     }
 }
