@@ -75,8 +75,8 @@ public class Intake extends SubsystemBase {
                 rightSpeed *= 1.;
             } else {
                 // Cone
-                leftSpeed *= -.5;
-                rightSpeed *= .5;
+                leftSpeed *= -1.;
+                rightSpeed *= 1.;
             }
         } else {
             // Outtake

@@ -7,6 +7,8 @@ import frc.robot.subsystems.Drivetrain;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 
+import static frc.robot.Constants.*;
+
 /**
  * This command is used to drive the robot with a coordinate system that is
  * relative to the field, not the robot
@@ -56,8 +58,8 @@ public class FieldOrientedDriveCommand extends CommandBase {
         } else {
             // Drive in precision mode
             drivetrain.drive(ChassisSpeeds.fromFieldRelativeSpeeds(
-                    Math.cos(Math.toRadians(pov)),
-                    Math.sin(Math.toRadians(pov - 180)),
+                    Math.cos(Math.toRadians(pov)) * MAX_VELOCITY_PRECISION_MODE_METERS_PER_SECOND,
+                    Math.sin(Math.toRadians(pov - 180)) * MAX_VELOCITY_PRECISION_MODE_METERS_PER_SECOND,
                     0.,
                     Rotation2d.fromDegrees(drivetrain.getGyroscopeAngle() + drivetrain.getGyroOffset())));
         }

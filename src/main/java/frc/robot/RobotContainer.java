@@ -81,8 +81,8 @@ public class RobotContainer {
         // Right stick Y axis -> arm rotation
         // Left stick Y axis -> arm extension
         arm.setDefaultCommand(new DefaultArmCommand(arm,
-                () -> -modifyAxis(operatorController.getLeftY()) * 1.,
-                () -> modifyAxis(operatorController.getLeftX()) * 1.)); // TODO we should be able to make this positive i think...
+                () -> -modifyAxis(operatorController.getLeftY()) * ARM_ROTATION_TRAINING_WHEELS,
+                () -> modifyAxis(operatorController.getLeftX()) * ARM_EXTENSION_TRAINING_WHEELS)); // TODO we should be able to make this positive i think...
         
         // Set up the default command for the intake
         // Left trigger -> intake
@@ -116,13 +116,13 @@ public class RobotContainer {
         // Pressing B button drives to the single human player station
         new Trigger(driverController::getBButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[0], () -> DRIVE_Y_PRESET_HUMANPLAYER[0], () -> 90.));
         // Pressing X button locks the wheels in an X pattern
-        // new Trigger(driverController::getXButton).onTrue(new InstantCommand(() -> drivetrain.toggleWheelsLocked())); // FIXME
+        new Trigger(driverController::getXButton).onTrue(new InstantCommand(() -> drivetrain.toggleWheelsLocked()));
         // Pressing Y button drives to the selected scoring position
         new Trigger(driverController::getYButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_SCORE, () -> DRIVE_Y_PRESET_SCORE[selectedCol], () -> 0.));
         // Pressing back button drives to the left double human player station
-        new Trigger(driverController::getBackButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[1], () -> DRIVE_Y_PRESET_HUMANPLAYER[2], () -> 0.));
+        new Trigger(driverController::getBackButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[1], () -> DRIVE_Y_PRESET_HUMANPLAYER[1], () -> 0.));
         // Pressing start button drives to the right double human player station
-        new Trigger(driverController::getStartButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[2], () -> DRIVE_Y_PRESET_HUMANPLAYER[3], () -> 0.));
+        new Trigger(driverController::getStartButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[2], () -> DRIVE_Y_PRESET_HUMANPLAYER[2], () -> 0.));
         // Pressing the Right Bumper shifts to high speed
         new Trigger(driverController::getRightBumper).onTrue(new InstantCommand(() -> speedUp()));
         // Pressing the Left Bumper shifts to low speed

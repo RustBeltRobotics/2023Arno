@@ -4,6 +4,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -14,6 +15,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.Optional;
+import org.photonvision.EstimatedRobotPose;
 
 import static frc.robot.Constants.*;
 
@@ -30,7 +33,7 @@ public class Drivetrain extends SubsystemBase {
     private final SwerveModule backLeftModule;
     private final SwerveModule backRightModule;
 
-    // private final Vision vision;
+    private final Vision vision;
 
     // The speed of the robot in x and y translational velocities and rotational velocity
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
@@ -49,7 +52,9 @@ public class Drivetrain extends SubsystemBase {
     private PIDController yController;
     private PIDController rController;
     private PPHolonomicDriveController pathController;
-    
+
+    private final SwerveDrivePoseEstimator poseEstimator;
+
     // private Timer timer;
 
     public Drivetrain() {
@@ -91,12 +96,7 @@ public class Drivetrain extends SubsystemBase {
         // Initialize odometry object
         odometry = new SwerveDriveOdometry(
                 KINEMATICS, getGyroscopeRotation(),
-                new SwerveModulePosition[] {
-                        frontLeftModule.getPosition(),
-                        frontRightModule.getPosition(),
-                        backLeftModule.getPosition(),
-                        backRightModule.getPosition()
-                });
+                getSwerveModulePositions());
         
         // Initialize PID Controllers
         xController = new PIDController(TRANSLATION_P, 0., 0.);
@@ -106,10 +106,9 @@ public class Drivetrain extends SubsystemBase {
 
         pathController = new PPHolonomicDriveController(xController, yController, rController);
 
-        // vision = new Vision();
+        poseEstimator =  new SwerveDrivePoseEstimator(KINEMATICS, getGyroscopeRotation(), getSwerveModulePositions(), new Pose2d());
 
-        // timer = new Timer();
-        // timer.start();
+        vision = new Vision();
     }
 
     /**
@@ -161,20 +160,29 @@ public class Drivetrain extends SubsystemBase {
         return navx.getRoll();
     }
 
+    public SwerveModulePosition[] getSwerveModulePositions() {
+        return new SwerveModulePosition[] {
+                frontLeftModule.getPosition(), frontRightModule.getPosition(), backLeftModule.getPosition(), backRightModule.getPosition()
+        };
+    }
+
     public void resetOdometry(Pose2d pose) {
-        odometry.resetPosition(
-                getGyroscopeRotation(),
-                new SwerveModulePosition[] {
-                        frontLeftModule.getPosition(),
-                        frontRightModule.getPosition(),
-                        backLeftModule.getPosition(),
-                        backRightModule.getPosition()
-                },
-                pose);
+        odometry.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
+    }
+
+    public void updateOdometry() {
+        poseEstimator.update(getGyroscopeRotation(), getSwerveModulePositions());
+
+        Optional<EstimatedRobotPose> result = vision.getEstimatedGlobalPose(poseEstimator.getEstimatedPosition());
+
+        if (result.isPresent()) {
+            EstimatedRobotPose camPose = result.get();
+            poseEstimator.addVisionMeasurement(camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
+        }
     }
 
     public Pose2d getPose() {
-        return odometry.getPoseMeters();
+        return poseEstimator.getEstimatedPosition();
     }
 
     public void setModuleStates(SwerveModuleState[] states) {
@@ -211,62 +219,8 @@ public class Drivetrain extends SubsystemBase {
      *                      drive the robot.
      */
     public void drive(ChassisSpeeds chassisSpeeds) {
-        // if (!autoBalanceOn) {
-            // If we're not in autobalance mode, act normally.
-            this.chassisSpeeds = chassisSpeeds;
-            // this.chassisSpeeds = new ChassisSpeeds(-chassisSpeeds.vxMetersPerSecond, -chassisSpeeds.vyMetersPerSecond, -chassisSpeeds.omegaRadiansPerSecond);
-        // } else {
-        //     // If we are in autobalance mode, calculate a new ChassisSpeed object based off
-        //     // the measured pitch and roll
-        //     this.chassisSpeeds = new ChassisSpeeds(
-        //             // X velocity is proportional to the sin of the roll angle
-        //             MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getRoll())), Math.toRadians(0.5))
-        //                     * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
-        //             // Y velocity is proportional to the sin of the pitch angle
-        //             MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getPitch())), Math.toRadians(0.5))
-        //                     * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
-        //             // No rotational velocity
-        //             0.0);
-        // }
+        this.chassisSpeeds = chassisSpeeds;
     }
-    
-    // /**
-    //  * Uses a feedforward controller and a PID controller to drive the arm to a
-    //  * commanded extension. Sets the rotation rate to zero to keep rotation and
-    //  * extension separate.
-    //  * 
-    //  * @param extension The extension to move the arm to. Fully retracted is 0,
-    //  *                  positive is exteneded.
-    //  * @return The command for driving to the desired extension.
-    //  */
-    // public Command driveToTarget(DoubleSupplier xTarget, DoubleSupplier yTarget, DoubleSupplier rTarget) {
-    //     return new FunctionalCommand(
-    //         // initialize(): reset PID controller and set setpoint
-    //         () -> {
-    //             xController.reset();
-    //             yController.reset();
-    //             rController.reset();
-    //             xController.setSetpoint(xTarget.getAsDouble());
-    //             yController.setSetpoint(yTarget.getAsDouble());
-    //             rController.setSetpoint(rTarget.getAsDouble());
-    //         },
-    //         // execute(): drive robot with velocities calculated by PID controllers
-    //         () -> {
-    //             // Calculate velocities
-    //             double xVel = xController.calculate(getPose().getX(), xTarget.getAsDouble());
-    //             double yVel = yController.calculate(getPose().getY(), yTarget.getAsDouble());
-    //             double rVel = rController.calculate(getGyroscopeAngle(), rTarget.getAsDouble());
-
-    //             drive(new ChassisSpeeds(xVel, yVel, rVel));
-    //         },
-    //         // end(): set drive voltages to zero
-    //         interupted -> drive(new ChassisSpeeds(0., 0., 0.)),
-    //         // isFinished(): check if PID controllers are at setpoint
-    //         () -> (xController.atSetpoint() && yController.atSetpoint() && rController.atSetpoint()),
-    //         // Require the drivetrain subsystem
-    //         this
-    //     );
-    // }
 
     /**
      * This method is run every 20 ms.
@@ -297,25 +251,9 @@ public class Drivetrain extends SubsystemBase {
         }
 
         // Update the odometry
-        odometry.update(
-                getGyroscopeRotation(),
-                new SwerveModulePosition[] {
-                        frontLeftModule.getPosition(), frontRightModule.getPosition(),
-                        backLeftModule.getPosition(), backRightModule.getPosition()
-                });
+        updateOdometry();
         SmartDashboard.putNumber("X", getPose().getX());
         SmartDashboard.putNumber("Y", getPose().getY());
         SmartDashboard.putNumber("R", getGyroscopeAngle());
-        // if (timer.get() >= 5.) {
-            // double[] location = vision.getFieldLocation();
-            // if (location != null
-            // && Math.abs(chassisSpeeds.vxMetersPerSecond) < .1  FIXM: Tune value and move to constants
-            // && Math.abs(chassisSpeeds.vyMetersPerSecond) < .1
-            // && Math.abs(chassisSpeeds.omegaRadiansPerSecond) < .1
-            // ) {
-                // resetOdometry(new Pose2d(new Translation2d(location[0], location[1]), getGyroscopeRotation()));
-                // timer.restart();
-            // }
-        // }
     }
 }

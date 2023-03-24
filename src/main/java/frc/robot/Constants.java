@@ -87,6 +87,8 @@ public final class Constants {
      */
     public static final double MAX_VELOCITY_METERS_PER_SECOND = 5676. * DRIVE_VELOCITY_CONVERSION;
 
+    public static final double MAX_VELOCITY_PRECISION_MODE_METERS_PER_SECOND = 0.5;
+
     /**
      * The maximum angular velocity of the robot in radians per second. This is a
      * measure of how fast the robot can rotate in place.
@@ -184,7 +186,7 @@ public final class Constants {
      * <p>
      * Output stackup: Gear ratio times pulley ratio
      */
-    public static final double ARM_ROTATION_CONVERSION = (360. / ((4. * 4. * 3) * (36./20.)));
+    public static final double ARM_ROTATION_CONVERSION = (360. / ((4. * 4. * 3.) * (36./20.)));
     
     /**
      * Maximum possible arm rotation velocity in degrees per second
@@ -193,6 +195,10 @@ public final class Constants {
      */
     public static final double MAX_ARM_VELOCITY_DEGREES_PER_SECOND = (5676. / 60.) * ARM_ROTATION_CONVERSION;
 
+    public static final double ARM_ROTATION_TRAINING_WHEELS = 1.;
+
+    public static final double ARM_EXTENSION_TRAINING_WHEELS = 0.25;
+
     /**
      * Unit conversion from motor rotation to arm extension inches
      * <p>
@@ -200,7 +206,7 @@ public final class Constants {
      * <p>
      * Output stackup: Gear ratio times pitch circumference
      */
-    public static final double ARM_EXTENSION_CONVERSION = (1. / (4. * 4. * 3.)) * (3. * Math.PI);
+    public static final double ARM_EXTENSION_CONVERSION = (1. / (4. * 4.)) * (3. * Math.PI);
     /**
      * Maximum possible arm extension velocity in inches per second
      * <p>
