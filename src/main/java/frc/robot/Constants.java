@@ -36,18 +36,6 @@ public final class Constants {
     /** Secondary current limit applied to NEO 550s */
     public static final int NEO550_SECONDARY_CURRENT_LIMIT = 30;
 
-    /**
-     * If the robot passes from greater than this to less than this, the robot is
-     * considered balanced on top of the charge station
-     */
-    public static final double CHARGE_STATION_BALANCED_ANGLE = 0.5;
-
-    /**
-     * If the robot passes from less than this to greater than this, the robot is
-     * considered to have started driving up the ramp
-     */
-    public static final double CHARGE_STATION_UNBALANCED_ANGLE = 5.;
-
     // Drivetrain Constants
     /**
      * The left-to-right distance between the drivetrain wheels
@@ -108,19 +96,17 @@ public final class Constants {
     public static final double STEER_D = 0.0002;
     
     /** Max acceleration while balancing autonomously. Meters per second */
-    public static final double MAX_BALANCE_VELOCITY = 0.11;
+    public static final double MAX_BALANCE_VELOCITY = 0.8;
 
-    /** FIXME: What are the units?? */
-    public static final double BALANCE_VELOCITY_TOLERANCE = 7; // FIXME: Confirm value
+    public static final double BALANCE_VELOCITY_TOLERANCE = 7;
 
-    /** FIXME: What are the units?? */
-    public static final double BALANCE_ANGLE_TOLERANCE = 13; // FIXME: Confirm value
+    public static final double BALANCE_ANGLE_TOLERANCE = 5;
 
     // Balance PID Constants
     public static final double BALANCE_P = 0.25;
 
     /** Max velocity while following a trajectory. Meters per second */
-    public static final double MAX_TRAJECTORY_VELOCITY = 3.5;
+    public static final double MAX_TRAJECTORY_VELOCITY = 1.;
 
     /** Max acceleration while following a trajectory. Meters per second per second */
     public static final double MAX_TRAJECTORY_ACCELERATION = 1.25;
@@ -170,10 +156,10 @@ public final class Constants {
     /** The max allowable angle of the arm */
     public static final double MAX_ARM_ANGLE_DEGREES = 120.;
     /** The min allowable angle of the arm */
-    public static final double MIN_ARM_ANGLE_DEGREES = -120.;
+    public static final double MIN_ARM_ANGLE_DEGREES = -130.;
 
     /** The max allowable extension of the arm */
-    public static final double MAX_ARM_EXTENSION_INCHES = 24.;
+    public static final double MAX_ARM_EXTENSION_INCHES = 26.5;
     /** The min allowable extension of the arm */
     public static final double MIN_ARM_EXTENSION_INCHES = 0.;
     /** The angle offset in degress for the arm's absolute encoder */
@@ -244,39 +230,39 @@ public final class Constants {
     public static final int LEFT_INTAKE_MOTOR = 41;
 
     // Camera constants
-    public static final double CAMERA_X = ((24./2.) - 10.) * 0.0254;
-    public static final double CAMERA_Y = (-((24./2.) - 8.75)) * 0.0254;
+    public static final double CAMERA_X = (-((24./2.) - 10.)) * 0.0254;
+    public static final double CAMERA_Y = (((24./2.) - 8.75)) * 0.0254;
     public static final double CAMERA_Z = (25.5625) * 0.0254;
-    public static final double[] TAG_X = {
-            610.77 * .0254,
-            610.77 * .0254,
-            610.77 * .0254,
-            636.96 * .0254,
-            14.25 * .0254,
-            40.45 * .0254,
-            40.45 * .0254,
-            40.45 * .0254
-    };
-    public static final double[] TAG_Y = {
-            42.19 * .0254,
-            108.19 * .0254,
-            174.19 * .0254,
-            265.74 * .0254,
-            265.74 * .0254,
-            174.19 * .0254,
-            108.19 * .0254,
-            42.19 * .0254
-    };
-    public static final double[] TAG_Z = {
-            18.22 * 0.0254,
-            18.22 * 0.0254,
-            18.22 * 0.0254,
-            27.38 * 0.0254,
-            27.38 * 0.0254,
-            18.22 * 0.0254,
-            18.22 * 0.0254,
-            18.22 * 0.0254
-    };
+    // public static final double[] TAG_X = {
+    //         610.77 * .0254,
+    //         610.77 * .0254,
+    //         610.77 * .0254,
+    //         636.96 * .0254,
+    //         14.25 * .0254,
+    //         40.45 * .0254,
+    //         40.45 * .0254,
+    //         40.45 * .0254
+    // };
+    // public static final double[] TAG_Y = {
+    //         42.19 * .0254,
+    //         108.19 * .0254,
+    //         174.19 * .0254,
+    //         265.74 * .0254,
+    //         265.74 * .0254,
+    //         174.19 * .0254,
+    //         108.19 * .0254,
+    //         42.19 * .0254
+    // };
+    // public static final double[] TAG_Z = {
+    //         18.22 * 0.0254,
+    //         18.22 * 0.0254,
+    //         18.22 * 0.0254,
+    //         27.38 * 0.0254,
+    //         27.38 * 0.0254,
+    //         18.22 * 0.0254,
+    //         18.22 * 0.0254,
+    //         18.22 * 0.0254
+    // };
     public static final double CAMERA_PITCH = 0.;
 
     public static final double POINT_OF_DECREASE_METERS = 2;
@@ -364,40 +350,40 @@ public final class Constants {
     public static final double[] GROUND_PIECE_Y_RED = GROUND_PIECE_Y_BLUE;
 
     /** Angles are in degrees. Left column is for cone, right column for cube */
-    public static final double[] ARM_ANGLE_PRESET_SCORE = {
-        100.,
-        90.,
-        45.
+    public static final double[][] ARM_ANGLE_PRESET_SCORE = {
+        {-123.25, -110.},
+        {-116.5, -96.5},
+        {-53., -53.}
     };
 
     /** Extensions are in inches. Left column is for cone, right column for cube */
-    public static final double[] ARM_EXTENSION_PRESET_SCORE = {
-        22.,
-        2.75,
-        0.
+    public static final double[][] ARM_EXTENSION_PRESET_SCORE = {
+        {26.5, 17.75},
+        {8.25, 0.},
+        {0., 0.}
     };
 
     /** Angles are in degrees. 0 -> chute station, 1 -> double station */
     public static final double[] ARM_ANGLE_PRESET_HUMANPLAYER = {
-        -65.,
-        92.5
+        28.75,
+        -130.
     };
         
     /** Extensions are in inches. 0 -> chute station, 1 -> double station */
     public static final double[] ARM_EXTENSION_PRESET_HUMANPLAYER = {
         0.,
-        0.
+        12.25
     };
 
     /** Angles are in degrees. 0 -> back, 1 -> front */
     public static final double[] ARM_ANGLE_PRESET_GROUND_PICKUP = {
-        -30.,
-        35.
+        0.,
+        4.5
     };
         
     /** Extensions are in inches. 0 -> back, 1 -> front */
     public static final double[] ARM_EXTENSION_PRESET_GROUND_PICKUP = {
-        16.5,
-        15.5
+        0.,
+        9.5
     };
 }

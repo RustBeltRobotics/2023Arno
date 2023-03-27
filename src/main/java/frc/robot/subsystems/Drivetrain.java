@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
@@ -44,8 +43,8 @@ public class Drivetrain extends SubsystemBase {
     // Boolean statement to control autobalance functionality
     private boolean autoBalanceOn = false;
 
-    // Odometry object for the drivetrain
-    private SwerveDriveOdometry odometry;
+    // // Odometry object for the drivetrain
+    // private SwerveDriveOdometry odometry;
 
     // PID controllers used for driving to a commanded x/y/r location
     private PIDController xController;
@@ -94,9 +93,9 @@ public class Drivetrain extends SubsystemBase {
         zeroGyroscope();
 
         // Initialize odometry object
-        odometry = new SwerveDriveOdometry(
-                KINEMATICS, getGyroscopeRotation(),
-                getSwerveModulePositions());
+        // odometry = new SwerveDriveOdometry(
+        //         KINEMATICS, getGyroscopeRotation(),
+        //         getSwerveModulePositions());
         
         // Initialize PID Controllers
         xController = new PIDController(TRANSLATION_P, 0., 0.);
@@ -167,17 +166,22 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public void resetOdometry(Pose2d pose) {
-        odometry.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
+        // odometry.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
+        poseEstimator.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
     }
 
     public void updateOdometry() {
         poseEstimator.update(getGyroscopeRotation(), getSwerveModulePositions());
+
+        // odometry.update(getGyroscopeRotation(), getSwerveModulePositions());
 
         Optional<EstimatedRobotPose> result = vision.getEstimatedGlobalPose(poseEstimator.getEstimatedPosition());
 
         if (result.isPresent()) {
             EstimatedRobotPose camPose = result.get();
             poseEstimator.addVisionMeasurement(camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
+            SmartDashboard.putNumber("Camera X", camPose.estimatedPose.toPose2d().getX());
+            SmartDashboard.putNumber("Camera Y", camPose.estimatedPose.toPose2d().getY());
         }
     }
 
@@ -252,8 +256,12 @@ public class Drivetrain extends SubsystemBase {
 
         // Update the odometry
         updateOdometry();
-        SmartDashboard.putNumber("X", getPose().getX());
-        SmartDashboard.putNumber("Y", getPose().getY());
+        SmartDashboard.putNumber("Estimator X", getPose().getX());
+        SmartDashboard.putNumber("Estimator Y", getPose().getY());
+        SmartDashboard.putNumber("Estimator R", getPose().getRotation().getDegrees());
+        // SmartDashboard.putNumber("Odometry X", odometry.getPoseMeters().getX());
+        // SmartDashboard.putNumber("Odometry Y", odometry.getPoseMeters().getY());
+        // SmartDashboard.putNumber("Odometry R", odometry.getPoseMeters().getRotation().getDegrees());
         SmartDashboard.putNumber("R", getGyroscopeAngle());
     }
 }

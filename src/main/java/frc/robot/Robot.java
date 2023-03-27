@@ -27,32 +27,33 @@ public class Robot extends TimedRobot {
     private GenericEntry grid00 = matchTab.add("TOP 1", false).withPosition(0, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid01 = matchTab.add("TOP 2", false).withPosition(1, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid02 = matchTab.add("TOP 3", false).withPosition(2, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid03 = matchTab.add("TOP 4", false).withPosition(3, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid04 = matchTab.add("TOP 5", false).withPosition(4, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid05 = matchTab.add("TOP 6", false).withPosition(5, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid06 = matchTab.add("TOP 7", false).withPosition(6, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid07 = matchTab.add("TOP 8", false).withPosition(7, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid08 = matchTab.add("TOP 9", false).withPosition(8, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid03 = matchTab.add("TOP 4", false).withPosition(3, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid04 = matchTab.add("TOP 5", false).withPosition(4, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid05 = matchTab.add("TOP 6", false).withPosition(5, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid06 = matchTab.add("TOP 7", false).withPosition(6, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid07 = matchTab.add("TOP 8", false).withPosition(7, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid08 = matchTab.add("TOP 9", false).withPosition(8, 0).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid10 = matchTab.add("MID 1", false).withPosition(0, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid11 = matchTab.add("MID 2", false).withPosition(1, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid12 = matchTab.add("MID 3", false).withPosition(2, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid13 = matchTab.add("MID 4", false).withPosition(3, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid14 = matchTab.add("MID 5", false).withPosition(4, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid15 = matchTab.add("MID 6", false).withPosition(5, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid16 = matchTab.add("MID 7", false).withPosition(6, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid17 = matchTab.add("MID 8", false).withPosition(7, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid18 = matchTab.add("MID 9", false).withPosition(8, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid13 = matchTab.add("MID 4", false).withPosition(3, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid14 = matchTab.add("MID 5", false).withPosition(4, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid15 = matchTab.add("MID 6", false).withPosition(5, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid16 = matchTab.add("MID 7", false).withPosition(6, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid17 = matchTab.add("MID 8", false).withPosition(7, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid18 = matchTab.add("MID 9", false).withPosition(8, 1).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid20 = matchTab.add("BOT 1", false).withPosition(0, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid21 = matchTab.add("BOT 2", false).withPosition(1, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
     private GenericEntry grid22 = matchTab.add("BOT 3", false).withPosition(2, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid23 = matchTab.add("BOT 4", false).withPosition(3, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid24 = matchTab.add("BOT 5", false).withPosition(4, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid25 = matchTab.add("BOT 6", false).withPosition(5, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid26 = matchTab.add("BOT 7", false).withPosition(6, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid27 = matchTab.add("BOT 8", false).withPosition(7, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
-    private GenericEntry grid28 = matchTab.add("BOT 9", false).withPosition(8, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid23 = matchTab.add("BOT 4", false).withPosition(3, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid24 = matchTab.add("BOT 5", false).withPosition(4, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid25 = matchTab.add("BOT 6", false).withPosition(5, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid26 = matchTab.add("BOT 7", false).withPosition(6, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid27 = matchTab.add("BOT 8", false).withPosition(7, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Purple", "Color When False", "Red")).withSize(1, 1).getEntry();
+    // private GenericEntry grid28 = matchTab.add("BOT 9", false).withPosition(8, 2).withWidget(BuiltInWidgets.kBooleanBox).withProperties(Map.of("Color When True", "Yellow", "Color When False", "Red")).withSize(1, 1).getEntry();
 
-    private GenericEntry timeEntry = matchTab.add("Time Left", 0.).withPosition(1, 3).withWidget(BuiltInWidgets.kTextView).getEntry();
+    private GenericEntry chunkEntry = matchTab.add("Scoring Chunk", "None!").withPosition(1, 3).withWidget(BuiltInWidgets.kTextView).getEntry();
+    private GenericEntry timeEntry = matchTab.add("Time Left", 0.).withPosition(2, 3).withWidget(BuiltInWidgets.kTextView).getEntry();
 
     /**
      * This function is run once when the robot is first started up and should be
@@ -61,6 +62,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         robotContainer = new RobotContainer();
+        // FIXME: Figure out how to put this in the match tab
         CameraServer.startAutomaticCapture(0);
     }
 
@@ -76,35 +78,36 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
 
-        boolean[][] gridStatus = robotContainer.getGridStatus();
-        grid00.setBoolean(gridStatus[0][0]);
-        grid01.setBoolean(gridStatus[0][1]);
-        grid02.setBoolean(gridStatus[0][2]);
-        grid03.setBoolean(gridStatus[0][3]);
-        grid04.setBoolean(gridStatus[0][4]);
-        grid05.setBoolean(gridStatus[0][5]);
-        grid06.setBoolean(gridStatus[0][6]);
-        grid07.setBoolean(gridStatus[0][7]);
-        grid08.setBoolean(gridStatus[0][8]);
-        grid10.setBoolean(gridStatus[1][0]);
-        grid11.setBoolean(gridStatus[1][1]);
-        grid12.setBoolean(gridStatus[1][2]);
-        grid13.setBoolean(gridStatus[1][3]);
-        grid14.setBoolean(gridStatus[1][4]);
-        grid15.setBoolean(gridStatus[1][5]);
-        grid16.setBoolean(gridStatus[1][6]);
-        grid17.setBoolean(gridStatus[1][7]);
-        grid18.setBoolean(gridStatus[1][8]);
-        grid20.setBoolean(gridStatus[2][0]);
-        grid21.setBoolean(gridStatus[2][1]);
-        grid22.setBoolean(gridStatus[2][2]);
-        grid23.setBoolean(gridStatus[2][3]);
-        grid24.setBoolean(gridStatus[2][4]);
-        grid25.setBoolean(gridStatus[2][5]);
-        grid26.setBoolean(gridStatus[2][6]);
-        grid27.setBoolean(gridStatus[2][7]);
-        grid28.setBoolean(gridStatus[2][8]);
+        boolean[][] subGridStatus = robotContainer.getSubGridStatus();
+        grid00.setBoolean(subGridStatus[0][0]);
+        grid01.setBoolean(subGridStatus[0][1]);
+        grid02.setBoolean(subGridStatus[0][2]);
+        // grid03.setBoolean(subGridStatus[0][3]);
+        // grid04.setBoolean(subGridStatus[0][4]);
+        // grid05.setBoolean(subGridStatus[0][5]);
+        // grid06.setBoolean(subGridStatus[0][6]);
+        // grid07.setBoolean(subGridStatus[0][7]);
+        // grid08.setBoolean(subGridStatus[0][8]);
+        grid10.setBoolean(subGridStatus[1][0]);
+        grid11.setBoolean(subGridStatus[1][1]);
+        grid12.setBoolean(subGridStatus[1][2]);
+        // grid13.setBoolean(subGridStatus[1][3]);
+        // grid14.setBoolean(subGridStatus[1][4]);
+        // grid15.setBoolean(subGridStatus[1][5]);
+        // grid16.setBoolean(subGridStatus[1][6]);
+        // grid17.setBoolean(subGridStatus[1][7]);
+        // grid18.setBoolean(subGridStatus[1][8]);
+        grid20.setBoolean(subGridStatus[2][0]);
+        grid21.setBoolean(subGridStatus[2][1]);
+        grid22.setBoolean(subGridStatus[2][2]);
+        // grid23.setBoolean(subGridStatus[2][3]);
+        // grid24.setBoolean(subGridStatus[2][4]);
+        // grid25.setBoolean(subGridStatus[2][5]);
+        // grid26.setBoolean(subGridStatus[2][6]);
+        // grid27.setBoolean(subGridStatus[2][7]);
+        // grid28.setBoolean(subGridStatus[2][8]);
 
+        chunkEntry.setString(robotContainer.getChunk());
         timeEntry.setDouble(DriverStation.getMatchTime());
     }
 

@@ -69,7 +69,7 @@ public class BalanceRobot extends CommandBase {
         forwardSpeed = MathUtil.clamp(forwardSpeed, -MAX_BALANCE_VELOCITY, MAX_BALANCE_VELOCITY);
         strafeSpeed = MathUtil.clamp(strafeSpeed, -MAX_BALANCE_VELOCITY, MAX_BALANCE_VELOCITY);
 
-        RobotContainer.drivetrain.drive(new ChassisSpeeds(forwardSpeed * -1., strafeSpeed * -1., 0.));
+        RobotContainer.drivetrain.drive(new ChassisSpeeds(forwardSpeed * 1., strafeSpeed * 1., 0.));
     }
 
     @Override

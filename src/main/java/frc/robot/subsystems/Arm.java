@@ -251,7 +251,8 @@ public class Arm extends SubsystemBase {
      *         positive is towards the front of the robot.
      */
     public double getAngle() {
-        return (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
+        // return (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
+        return rotationAbsoluteEncoder.getPosition();
     }
 
     /**
@@ -301,7 +302,11 @@ public class Arm extends SubsystemBase {
     /** This method is run every 20 ms */
     @Override
     public void periodic() {
-        if (timer.get() >= 5.) {
+        // SmartDashboard.putNumber("Angle", getAngle());
+        // SmartDashboard.putNumber("Absolute", rotationAbsoluteEncoder.getPosition());
+        // SmartDashboard.putNumber("Extension", getExtension());
+        if (timer.get() >= 1.) { // FIXME: this can probably be quicker. Or maybe there's a more elegant solution. Maybe just use absolute.getPosition() in our PID method?
+            // FIXME: This seems to be causing some stuttering
             resetEncoders();
             timer.restart();
         }

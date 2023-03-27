@@ -19,12 +19,13 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class Vision {
-    private PhotonCamera photonCamera;
+    private PhotonCamera photonCamera; 
     private PhotonPoseEstimator photonPoseEstimator;
 
     public Vision() {
         // Change the name of your camera here to whatever it is in the PhotonVision UI.
         photonCamera = new PhotonCamera("AprilTagCamera");
+        // FIXME: Figure out how to put this on the match tab
 
         try {
             // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
@@ -34,12 +35,10 @@ public class Vision {
                     new PhotonPoseEstimator(
                             fieldLayout,
                             PoseStrategy.AVERAGE_BEST_TARGETS,
-                            // PoseStrategy.MULTI_TAG_PNP,
                             photonCamera,
                             new Transform3d(
                                 new Translation3d(CAMERA_X, CAMERA_Y, CAMERA_Z),
                                 new Rotation3d(0., 0., Math.PI)));
-            // photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
         } catch (IOException e) {
             // The AprilTagFieldLayout failed to load. We won't be able to estimate poses if we don't know
             // where the tags are.

@@ -75,8 +75,8 @@ public class Intake extends SubsystemBase {
                 rightSpeed *= 1.;
             } else {
                 // Cone
-                leftSpeed *= -1.;
-                rightSpeed *= 1.;
+                leftSpeed *= 1.;
+                rightSpeed *= -1.;
             }
         } else {
             // Outtake
@@ -86,8 +86,8 @@ public class Intake extends SubsystemBase {
                 rightSpeed *= -1.;
             } else {
                 // Cone
-                leftSpeed *= 1.;
-                rightSpeed *= -1.;
+                leftSpeed *= -1.;
+                rightSpeed *= 1.;
             }
         }
         leftIntakeMotor.setVoltage(leftSpeed * MAX_VOLTAGE);
