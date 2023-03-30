@@ -7,7 +7,8 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
-
+import java.io.IOException;
+import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -15,18 +16,17 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import static frc.robot.Constants.*;
 
-import java.io.IOException;
-import java.util.Optional;
-
 public class Vision {
     private PhotonCamera photonCamera; 
     private PhotonPoseEstimator photonPoseEstimator;
 
+    // private ShuffleboardTab matchTab = Shuffleboard.getTab("Match");
+
     public Vision() {
         // Change the name of your camera here to whatever it is in the PhotonVision UI.
         photonCamera = new PhotonCamera("AprilTagCamera");
+        // FIXME: Update photon library at Hotel.
         // FIXME: Figure out how to put this on the match tab
-
         try {
             // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
             AprilTagFieldLayout fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();

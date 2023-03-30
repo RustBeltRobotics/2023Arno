@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
-
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 
@@ -102,25 +101,21 @@ public final class Constants {
 
     public static final double BALANCE_ANGLE_TOLERANCE = 5;
 
-    // Balance PID Constants
     public static final double BALANCE_P = 0.25;
 
     /** Max velocity while following a trajectory. Meters per second */
-    public static final double MAX_TRAJECTORY_VELOCITY = 1.;
+    public static final double MAX_TRAJECTORY_VELOCITY = 5.;
 
     /** Max acceleration while following a trajectory. Meters per second per second */
-    public static final double MAX_TRAJECTORY_ACCELERATION = 1.25;
+    public static final double MAX_TRAJECTORY_ACCELERATION = 4.;
 
-    // Translation PID Constants
-    public static final double TRANSLATION_P = 2.;
+    public static final double TRAJECTORY_TRANSLATION_P = 2.;
 
-    // Rotation PID Constants
-    public static final double ROTATION_P = 2.;
+    public static final double TRAJECTORY_ROTATION_P = 2.;
 
-    /** Factor applied to maximum drive velocity in manual mode, high speed mode */
-    public static final double MAX_SPEED_FACTOR_HIGH = 0.8;
-    /** Factor applied to maximum drive velocity in manual mode, low speed mode */
-    public static final double MAX_SPEED_FACTOR_LOW = 0.2;
+    public static final double POSE_TRANSLATION_P = 3.5;
+
+    public static final double POSE_ROTATION_P = 0.1;
 
     // CAN IDs
     public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 14;
@@ -165,6 +160,9 @@ public final class Constants {
     /** The angle offset in degress for the arm's absolute encoder */
     public static final double ARM_ABSOLUTE_OFFSET = 138.427734375;
 
+    /** The allowable delta betwee the arm absolute encoder and relative encoders, degrees */
+    public static final double ARM_ABSOLUTE_TOLERANCE = 15.;
+
     /**
      * Unit conversion from motor rotation to arm rotation degrees
      * <p>
@@ -201,13 +199,13 @@ public final class Constants {
     public static final double MAX_ARM_VELOCITY_INCHES_PER_SECOND = (5676. / 60.) * ARM_EXTENSION_CONVERSION;
 
     // Arm Rotation PID and Feed Forward constants
-    public static final double ARM_ROTATION_P = 0.24725;
+    public static final double ARM_ROTATION_P = 0.38317;
     public static final double ARM_ROTATION_I = 0.;
-    public static final double ARM_ROTATION_D = 0.00623311;
-    public static final double ARM_ROTATION_S = 0.39307;
-    public static final double ARM_ROTATION_G = 0.026756;
-    public static final double ARM_ROTATION_V = 0.03304;
-    public static final double ARM_ROTATION_A = 0.0014601;
+    public static final double ARM_ROTATION_D = 0.011023;
+    public static final double ARM_ROTATION_S = 0.22608;
+    public static final double ARM_ROTATION_G = 0.20302;
+    public static final double ARM_ROTATION_V = 0.036675;
+    public static final double ARM_ROTATION_A = 0.0024256;
 
     /** Degrees */
     public static final double ARM_ROTATION_TOLERANCE = 1.;
@@ -233,39 +231,6 @@ public final class Constants {
     public static final double CAMERA_X = (-((24./2.) - 10.)) * 0.0254;
     public static final double CAMERA_Y = (((24./2.) - 8.75)) * 0.0254;
     public static final double CAMERA_Z = (25.5625) * 0.0254;
-    // public static final double[] TAG_X = {
-    //         610.77 * .0254,
-    //         610.77 * .0254,
-    //         610.77 * .0254,
-    //         636.96 * .0254,
-    //         14.25 * .0254,
-    //         40.45 * .0254,
-    //         40.45 * .0254,
-    //         40.45 * .0254
-    // };
-    // public static final double[] TAG_Y = {
-    //         42.19 * .0254,
-    //         108.19 * .0254,
-    //         174.19 * .0254,
-    //         265.74 * .0254,
-    //         265.74 * .0254,
-    //         174.19 * .0254,
-    //         108.19 * .0254,
-    //         42.19 * .0254
-    // };
-    // public static final double[] TAG_Z = {
-    //         18.22 * 0.0254,
-    //         18.22 * 0.0254,
-    //         18.22 * 0.0254,
-    //         27.38 * 0.0254,
-    //         27.38 * 0.0254,
-    //         18.22 * 0.0254,
-    //         18.22 * 0.0254,
-    //         18.22 * 0.0254
-    // };
-    public static final double CAMERA_PITCH = 0.;
-
-    public static final double POINT_OF_DECREASE_METERS = 2;
 
     // Location Presets
     /** Distance in meters. frame plus bumpers */

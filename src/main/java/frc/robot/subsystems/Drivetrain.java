@@ -98,9 +98,9 @@ public class Drivetrain extends SubsystemBase {
         //         getSwerveModulePositions());
         
         // Initialize PID Controllers
-        xController = new PIDController(TRANSLATION_P, 0., 0.);
-        yController = new PIDController(TRANSLATION_P, 0., 0.);
-        rController = new PIDController(ROTATION_P, 0., 0.);
+        xController = new PIDController(TRAJECTORY_TRANSLATION_P, 0., 0.);
+        yController = new PIDController(TRAJECTORY_TRANSLATION_P, 0., 0.);
+        rController = new PIDController(TRAJECTORY_ROTATION_P, 0., 0.);
         rController.enableContinuousInput(-180., 180.);
 
         pathController = new PPHolonomicDriveController(xController, yController, rController);

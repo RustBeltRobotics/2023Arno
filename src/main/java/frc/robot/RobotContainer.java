@@ -1,36 +1,27 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.commands.BalanceRobot;
 import frc.robot.commands.DefaultArmCommand;
 import frc.robot.commands.DefaultIntakeCommand;
-import frc.robot.commands.DriveFollowTrajectory;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.FieldOrientedDriveCommand;
+import frc.robot.commands.autos.HumanPlayer3P;
+import frc.robot.commands.autos.TestAuto;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 
-import com.pathplanner.lib.PathConstraints;
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
-
 import static frc.robot.Constants.*;
 import static frc.robot.Utilities.*;
-
-import java.util.List;
-
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -77,7 +68,7 @@ public class RobotContainer {
 
     private final double[] DRIVE_Y_PRESET_HUMANPLAYER;
 
-    // private final double SCORE_ROTATION;
+    private ShuffleboardTab matchTab = Shuffleboard.getTab("Match");
 
     public static SendableChooser<Command> autoChooser = new SendableChooser<Command>();
 
@@ -135,7 +126,7 @@ public class RobotContainer {
         // Pressing X button locks the wheels in an X pattern
         new Trigger(driverController::getXButton).onTrue(new InstantCommand(() -> drivetrain.toggleWheelsLocked()));
         // // Pressing Y button drives to the selected scoring position
-        // new Trigger(driverController::getYButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_SCORE, () -> DRIVE_Y_PRESET_SCORE[selectedCol], () -> 0.));
+        new Trigger(driverController::getYButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_SCORE, () -> DRIVE_Y_PRESET_SCORE[selectedCol], () -> 0.));
         // Pressing back button drives to the left double human player station
         new Trigger(driverController::getBackButton).onTrue(new DriveToPose(() -> DRIVE_X_PRESET_HUMANPLAYER[1], () -> DRIVE_Y_PRESET_HUMANPLAYER[1], () -> 0.));
         // Pressing start button drives to the right double human player station
@@ -144,8 +135,6 @@ public class RobotContainer {
         new Trigger(driverController::getRightBumper).onTrue(new InstantCommand(() -> speedUp()));
         // Pressing the Left Bumper shifts to low speed
         new Trigger(driverController::getLeftBumper).onTrue(new InstantCommand(() -> speedDown()));
-
-        new Trigger(driverController::getYButton).whileTrue(new DriveToPose(() -> 14.522958,  () -> 2.748026,  () -> 180.));
 
         // Operator Controller Bindings
         // Holding A button retracts and centers the arm
@@ -166,70 +155,44 @@ public class RobotContainer {
         new Trigger(operatorController::getRightBumper).onTrue(new InstantCommand(() -> intake.selectCube()));
         // D-pad is used to select a scoring node
         new Trigger(() -> operatorController.getPOV() != -1).onTrue(new InstantCommand(() -> changeSelectedScoreLocation(operatorController.getPOV())));
+        // Clicking the right stick zeros the arm encoder
+        new Trigger(operatorController::getRightStickButton).onTrue(new InstantCommand(() -> arm.resetEncoders()));
     }
 
     public void configureAutos() {
         autoChooser.setDefaultOption("Do nothing", new WaitCommand(1.));
 
-        List<PathPlannerTrajectory> balancePath = PathPlanner.loadPathGroup("New Path", new PathConstraints(MAX_TRAJECTORY_VELOCITY, MAX_TRAJECTORY_ACCELERATION));
-        autoChooser.addOption("Balance", new SequentialCommandGroup(
-            new InstantCommand(() -> new InstantCommand(() -> drivetrain.resetOdometry(new Pose2d(DRIVE_X_PRESET_SCORE, DRIVE_Y_PRESET_SCORE[4], Rotation2d.fromDegrees(0.))))),
-            new InstantCommand(() -> intake.selectCube()),
-            arm.driveArmTo(() -> ARM_ANGLE_PRESET_SCORE[0][1], () -> ARM_EXTENSION_PRESET_SCORE[0][1]),
-            new InstantCommand(() -> intake.runIntake(1., false), intake),
-            new WaitCommand(.5),
-            new InstantCommand(() -> intake.stopIntake()),
-            arm.centerArm(),
+        autoChooser.addOption("Test", new TestAuto());
+        autoChooser.addOption("Human Player 3P", new HumanPlayer3P());
 
-            // Drive over 
-            new DriveFollowTrajectory(balancePath.get(0), true),
 
-            // Grab piece
-            // new InstantCommand(() -> intake.selectCube()),
-            // new InstantCommand(() -> intake.runIntake(1., false), intake),
-            // arm.driveArmTo(() -> ARM_ANGLE_PRESET_GROUND_PICKUP[1], () -> ARM_EXTENSION_PRESET_GROUND_PICKUP[1]),
-            // new WaitCommand(.75),
-            // new InstantCommand(() -> intake.stopIntake()),
-            // arm.centerArm(),
 
-            // Drive on top and balance
-            new DriveFollowTrajectory(balancePath.get(1), false),
-            new BalanceRobot()));
+        // List<PathPlannerTrajectory> balancePath = PathPlanner.loadPathGroup("New Path", new PathConstraints(MAX_TRAJECTORY_VELOCITY, MAX_TRAJECTORY_ACCELERATION));
+        // autoChooser.addOption("Balance", new SequentialCommandGroup(
+        //     new InstantCommand(() -> new InstantCommand(() -> drivetrain.resetOdometry(new Pose2d(DRIVE_X_PRESET_SCORE, DRIVE_Y_PRESET_SCORE[4], Rotation2d.fromDegrees(0.))))),
+        //     new InstantCommand(() -> intake.selectCube()),
+        //     arm.driveArmTo(() -> ARM_ANGLE_PRESET_SCORE[0][1], () -> ARM_EXTENSION_PRESET_SCORE[0][1]),
+        //     new InstantCommand(() -> intake.runIntake(1., false), intake),
+        //     new WaitCommand(.5),
+        //     new InstantCommand(() -> intake.stopIntake()),
+        //     arm.centerArm(),
 
-        autoChooser.addOption("Blue Left", new SequentialCommandGroup(
-            // Move arm to middle level, spit cube, and center arm
-            new InstantCommand(() -> intake.selectCube()),
-            // arm.driveArmTo(() -> -ARM_ANGLE_PRESET_SCORE[1], () -> ARM_EXTENSION_PRESET_SCORE[1]),
-            new InstantCommand(() -> intake.runIntake(1., false), intake),
-            new WaitCommand(.25),
-            new InstantCommand(() -> intake.stopIntake()),
-            arm.centerArm()
+        //     // Drive over 
+        //     new DriveFollowTrajectory(balancePath.get(0), true),
 
-            // Drive to ground cube, pick up, and center arm
-            // drivetrain.driveToTarget(() -> -5.1054, () -> 0., () -> 0.),
-            // drivetrain.driveToTarget(() -> -1, () -> 0., () -> 0.),
-            // new InstantCommand(() -> intake.selectCube()),
-            // new InstantCommand(() -> intake.runIntake(1., true)),
-            // arm.driveArmTo(() -> ARM_ANGLE_PRESET_GROUND_PICKUP[1], () -> ARM_EXTENSION_PRESET_GROUND_PICKUP[1]),
-            // new InstantCommand(() -> intake.stopIntake()),
-            // arm.centerArm(),
-            
-            // // Drive to grid, move arm to bottom level, spit cube, and center arm
-            // drivetrain.driveToTarget(() -> 0., () -> 0., () -> 0.),
-            // arm.driveArmTo(() -> -ARM_ANGLE_PRESET_SCORE[2], () -> ARM_EXTENSION_PRESET_SCORE[2]),
-            // new InstantCommand(() -> intake.runIntake(1., false), intake),
-            // new WaitCommand(.25),
-            // new InstantCommand(() -> intake.stopIntake()),
-            // arm.centerArm()
-        ));
+        //     // Grab piece
+        //     // new InstantCommand(() -> intake.selectCube()),
+        //     // new InstantCommand(() -> intake.runIntake(1., false), intake),
+        //     // arm.driveArmTo(() -> ARM_ANGLE_PRESET_GROUND_PICKUP[1], () -> ARM_EXTENSION_PRESET_GROUND_PICKUP[1]),
+        //     // new WaitCommand(.75),
+        //     // new InstantCommand(() -> intake.stopIntake()),
+        //     // arm.centerArm(),
 
-        // autoChooser.addOption("Blue Center", null);
-        // autoChooser.addOption("Blue Right", null);
-        // autoChooser.addOption("Red Left", null);
-        // autoChooser.addOption("Red Center", null);
-        // autoChooser.addOption("Red Right", null);
+        //     // Drive on top and balance
+        //     new DriveFollowTrajectory(balancePath.get(1), false),
+        //     new BalanceRobot()));
 
-        SmartDashboard.putData(autoChooser); // FIXME: move this to match tab
+        matchTab.add(autoChooser).withPosition(2, 3);
     }
 
     /**
@@ -247,12 +210,12 @@ public class RobotContainer {
     }
 
     public void speedUp() {
-        maxSpeedFactor += .1;// MAX_SPEED_FACTOR_HIGH;
+        maxSpeedFactor += .1;
         maxSpeedFactor = MathUtil.clamp(maxSpeedFactor, .1, 1.);
     }
 
     public void speedDown() {
-        maxSpeedFactor -= .1;// MAX_SPEED_FACTOR_LOW;
+        maxSpeedFactor -= .1;
         maxSpeedFactor = MathUtil.clamp(maxSpeedFactor, .1, 1.);
     }
 
@@ -291,7 +254,6 @@ public class RobotContainer {
         // Clamp the values inside the bounds of the grid (3 high by 9 wide)
         selectedRow = MathUtil.clamp(selectedRow, 0, 2);
         selectedCol = MathUtil.clamp(selectedCol, 0, 8);
-        // selectedCol = 0;
 
         // Set the next location to true
         gridStatus[selectedRow][selectedCol] = true;

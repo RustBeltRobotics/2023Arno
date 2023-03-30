@@ -94,10 +94,15 @@ public class Intake extends SubsystemBase {
         rightIntakeMotor.setVoltage(rightSpeed * MAX_VOLTAGE);
     }
 
-    public void stopIntake() {
+    public void zeroIntake() {
         leftIntakeMotor.setVoltage(0.);
         rightIntakeMotor.setVoltage(0.);
     }
+
+    public Command stopIntake() {
+        return new InstantCommand(() -> zeroIntake());
+    }
+
 
     public Command startIntake(boolean intake) {
         return new InstantCommand(() -> runIntake(1., intake));

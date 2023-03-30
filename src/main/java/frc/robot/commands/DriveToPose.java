@@ -3,7 +3,6 @@ package frc.robot.commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.RobotContainer;
 import java.util.function.DoubleSupplier;
@@ -25,9 +24,6 @@ public class DriveToPose extends CommandBase {
     private double yGoal;
     private double rGoal;
 
-    private double tP = 5.;
-    private double rP = 0.;
-
     public DriveToPose(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier rotationSupplier) {
         addRequirements(RobotContainer.drivetrain);
         xGoal = xSupplier.getAsDouble();
@@ -38,12 +34,9 @@ public class DriveToPose extends CommandBase {
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
-        SmartDashboard.putNumber("tP", tP);
-        SmartDashboard.putNumber("rP", rP);
-
-        xController = new PIDController(tP, 0., 0.);
-        yController = new PIDController(tP, 0., 0.);
-        rController = new PIDController(rP, 0., 0.);
+        xController = new PIDController(POSE_TRANSLATION_P, 0., 0.);
+        yController = new PIDController(POSE_TRANSLATION_P, 0., 0.);
+        rController = new PIDController(POSE_ROTATION_P, 0., 0.);
         rController.enableContinuousInput(-180., 180.);
 
         xController.setSetpoint(xGoal);
@@ -54,25 +47,14 @@ public class DriveToPose extends CommandBase {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        tP = SmartDashboard.getNumber("tP", 0.);
-        rP = SmartDashboard.getNumber("rP", 0.);
-
-        xController.setP(tP);
-        yController.setP(tP);
-        rController.setP(rP);
-
         double xVel = xController.calculate(RobotContainer.drivetrain.getPose().getX());
         double yVel = yController.calculate(RobotContainer.drivetrain.getPose().getY());
         double rVel = rController.calculate(RobotContainer.drivetrain.getPose().getRotation().getDegrees());
 
-        SmartDashboard.putNumber("xVel", xVel);
-        SmartDashboard.putNumber("yVel", yVel);
-        SmartDashboard.putNumber("rVel", rVel);
-
-        xVel = MathUtil.clamp(-xVel, -MAX_VELOCITY_METERS_PER_SECOND, MAX_VELOCITY_METERS_PER_SECOND);
-        yVel = MathUtil.clamp(-yVel, -MAX_VELOCITY_METERS_PER_SECOND, MAX_VELOCITY_METERS_PER_SECOND);        
-        rVel = MathUtil.clamp(-rVel, -MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND, MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND);
-        ChassisSpeeds robotSpeed = new ChassisSpeeds(xVel, yVel, rVel);
+        xVel = MathUtil.clamp(xVel, -MAX_VELOCITY_METERS_PER_SECOND, MAX_VELOCITY_METERS_PER_SECOND);
+        yVel = MathUtil.clamp(yVel, -MAX_VELOCITY_METERS_PER_SECOND, MAX_VELOCITY_METERS_PER_SECOND);        
+        rVel = MathUtil.clamp(rVel, -MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND, MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND);
+        ChassisSpeeds robotSpeed = ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(xVel, yVel, rVel), RobotContainer.drivetrain.getPose().getRotation());
 
         // pass the robotSpeed to the swerveDrive
         RobotContainer.drivetrain.drive(robotSpeed);

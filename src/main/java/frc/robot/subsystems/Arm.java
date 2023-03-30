@@ -9,15 +9,14 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.DoubleSupplier;
 
 import static frc.robot.Constants.*;
-
-import java.util.function.DoubleSupplier;
 
 public class Arm extends SubsystemBase {
     // Motor controllers
@@ -41,7 +40,7 @@ public class Arm extends SubsystemBase {
     private final ArmFeedforward rotationFF;
     private final ArmFeedforward extensionFF;
 
-    private final Timer timer;
+    // private final Timer timer;
 
     public Arm() {
         // Setup the SparkMax objects and encoders. Note that we set all of the
@@ -106,8 +105,10 @@ public class Arm extends SubsystemBase {
         rotationFF = new ArmFeedforward(ARM_ROTATION_S, ARM_ROTATION_G, ARM_ROTATION_V, ARM_ROTATION_A);
         extensionFF = new ArmFeedforward(ARM_EXTENSION_S, ARM_EXTENSION_G, ARM_EXTENSION_V, ARM_EXTENSION_A);
 
-        timer = new Timer();
-        timer.start();
+        // timer = new Timer();
+        // timer.start();
+
+        resetEncoders();
     }
 
     /**
@@ -143,8 +144,12 @@ public class Arm extends SubsystemBase {
      */
     public Command driveRotationTo(DoubleSupplier angle) {
         return new FunctionalCommand(
-            // initialize(): reset PID controller and set setpoint
+            // initialize(): check endcoder delta and zero if necessary, reset PID
+            // controller and set setpoint
             () -> {
+                if (Math.abs(getAngle() - getAbsoluteAngle()) >= ARM_ABSOLUTE_TOLERANCE) {
+                    resetEncoders();
+                }
                 rotationPID.reset();
                 rotationPID.setSetpoint(angle.getAsDouble());
             },
@@ -245,13 +250,22 @@ public class Arm extends SubsystemBase {
     }
 
     /**
-     * Returns the current angle of the arm by averaging the two motor encoders.
+     * Returns the current absolute encoder angle of the arm.
      * 
      * @return The current arm angle in degrees. Straight down is 0 degress,
      *         positive is towards the front of the robot.
      */
     public double getAngle() {
-        // return (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
+        return (rotationRightEncoder.getPosition() + rotationLeftEncoder.getPosition()) / 2;
+    }
+
+    /**
+     * Returns the current angle of the arm by averaging the two motor encoders.
+     * 
+     * @return The current arm angle in degrees. Straight down is 0 degress,
+     *         positive is towards the front of the robot.
+     */
+    public double getAbsoluteAngle() {
         return rotationAbsoluteEncoder.getPosition();
     }
 
@@ -293,22 +307,15 @@ public class Arm extends SubsystemBase {
 
     public void resetEncoders() {
         rotationAbsoluteEncoder.setPosition(rotationAbsoluteEncoder.getAbsolutePosition());
-        rotationLeftEncoder.setPosition(rotationAbsoluteEncoder.getPosition());
-        rotationRightEncoder.setPosition(rotationAbsoluteEncoder.getPosition());
-        // extensionEncoder.setPosition(0.);
-
+        rotationLeftEncoder.setPosition(rotationAbsoluteEncoder.getAbsolutePosition());
+        rotationRightEncoder.setPosition(rotationAbsoluteEncoder.getAbsolutePosition());
     }
 
     /** This method is run every 20 ms */
     @Override
     public void periodic() {
-        // SmartDashboard.putNumber("Angle", getAngle());
-        // SmartDashboard.putNumber("Absolute", rotationAbsoluteEncoder.getPosition());
-        // SmartDashboard.putNumber("Extension", getExtension());
-        if (timer.get() >= 1.) { // FIXME: this can probably be quicker. Or maybe there's a more elegant solution. Maybe just use absolute.getPosition() in our PID method?
-            // FIXME: This seems to be causing some stuttering
-            resetEncoders();
-            timer.restart();
-        }
+        SmartDashboard.putNumber("Angle", getAngle());
+        SmartDashboard.putNumber("Absolute", getAbsoluteAngle());
+        SmartDashboard.putNumber("Extension", getExtension());
     }
 }
