@@ -7,6 +7,7 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 import static frc.robot.Constants.*;
@@ -26,8 +27,8 @@ public class SwerveModule {
         // Setup drive motor SparkMax
         driveMotor = new CANSparkMax(driveID, MotorType.kBrushless);
         driveMotor.restoreFactoryDefaults();
-        driveMotor.setIdleMode(IdleMode.kCoast);
-        driveMotor.setInverted(false);
+        driveMotor.setIdleMode(IdleMode.kBrake);
+        driveMotor.setInverted(true);
         driveMotor.setSmartCurrentLimit(DRIVE_SMART_CURRENT_LIMIT);
         driveMotor.setSecondaryCurrentLimit(DRIVE_SECONDARY_CURRENT_LIMIT);
 
@@ -39,7 +40,7 @@ public class SwerveModule {
         // Setup steer motor SparkMax
         steerMotor = new CANSparkMax(steerID, MotorType.kBrushless);
         steerMotor.restoreFactoryDefaults();
-        steerMotor.setIdleMode(IdleMode.kCoast);
+        steerMotor.setIdleMode(IdleMode.kBrake);
         steerMotor.setInverted(true);
         steerMotor.setSmartCurrentLimit(STEER_SMART_CURRENT_LIMIT);
         steerMotor.setSecondaryCurrentLimit(STEER_SECONDARY_CURRENT_LIMIT);
@@ -49,11 +50,11 @@ public class SwerveModule {
         steerEncoder.setPositionConversionFactor(STEER_POSITION_CONVERSION);
         steerEncoder.setVelocityConversionFactor(STEER_VELOCITY_CONVERSION);
 
-        // Setup steer motor relative encoder
+        // Setup steer motor absolute encoder
         absoluteSteerEncoder = new CANCoder(encoderID);
         absoluteSteerEncoder.configMagnetOffset(offset);
 
-        // Allow PID to Loop over
+        // Allow PID to loop over
         steerPID.enableContinuousInput(0., 360.);
 
         resetEncoders();
@@ -84,6 +85,11 @@ public class SwerveModule {
         return absoluteSteerEncoder.getAbsolutePosition();
     }
 
+    /** @return Drive encoder (meters) and steer encoder (degrees) positions */
+    public SwerveModulePosition getPosition() {
+        return new SwerveModulePosition(getDrivePosition(), new Rotation2d(Math.toRadians(getSteerPosition())));
+      }
+
     /** Resets the drive relative encoder to 0 and steer relative encoder to match absolute encoder */
     public void resetEncoders() {
         driveEncoder.setPosition(0.);
@@ -99,7 +105,7 @@ public class SwerveModule {
      * Set's the speed and angle of an idividual module.
      * @param state the desired state (velocity, m/s, and steer angle, degrees as a Rotation2d)
      */
-    public void setState(SwerveModuleState state) {        
+    public void setState(SwerveModuleState state) {     
         // If input is minimal, ignore input to avoid reseting steer angle to 0 degrees
         if (Math.abs(state.speedMetersPerSecond) < 0.001) {
             stopModule();
@@ -108,6 +114,14 @@ public class SwerveModule {
         state = SwerveModuleState.optimize(state, getState().angle);
         driveMotor.set(state.speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND); // TODO: Replace with tuned PID/FF
         steerMotor.set(steerPID.calculate(getSteerPosition(), state.angle.getDegrees()));
+    }
+
+    /**
+     * Locks the wheel at the provided angle
+     * @param angle degrees
+     */
+    public void lockModule(int angle) {
+        steerMotor.set(steerPID.calculate(getSteerPosition(), angle));
     }
 
     /** Set's the voltage to both motors to 0 */

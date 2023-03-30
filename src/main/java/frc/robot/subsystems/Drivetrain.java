@@ -1,26 +1,38 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-
-import edu.wpi.first.math.MathUtil;
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.Optional;
+import org.photonvision.EstimatedRobotPose;
 
 import static frc.robot.Constants.*;
 
 public class Drivetrain extends SubsystemBase {
     // NavX connected over MXP
-    public final AHRS navx = new AHRS(SPI.Port.kMXP);
+    public final AHRS navx;
+
+    /** For user to reset zero for "forward" on the robot while maintaining absolute field zero for odometry */
+    private double gyroOffset;
 
     // These are our modules. We initialize them in the constructor.
     private final SwerveModule frontLeftModule;
     private final SwerveModule frontRightModule;
     private final SwerveModule backLeftModule;
     private final SwerveModule backRightModule;
+
+    private final Vision vision;
 
     // The speed of the robot in x and y translational velocities and rotational velocity
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
@@ -31,7 +43,21 @@ public class Drivetrain extends SubsystemBase {
     // Boolean statement to control autobalance functionality
     private boolean autoBalanceOn = false;
 
+    // // Odometry object for the drivetrain
+    // private SwerveDriveOdometry odometry;
+
+    // PID controllers used for driving to a commanded x/y/r location
+    private PIDController xController;
+    private PIDController yController;
+    private PIDController rController;
+    private PPHolonomicDriveController pathController;
+
+    private final SwerveDrivePoseEstimator poseEstimator;
+
+    // private Timer timer;
+
     public Drivetrain() {
+        // Initialize all modules
         frontLeftModule = new SwerveModule(
                 FRONT_LEFT_MODULE_DRIVE_MOTOR,
                 FRONT_LEFT_MODULE_STEER_MOTOR,
@@ -56,12 +82,32 @@ public class Drivetrain extends SubsystemBase {
                 BACK_RIGHT_MODULE_STEER_ENCODER,
                 BACK_RIGHT_MODULE_STEER_OFFSET);
 
-        new Thread(() -> {
-            try {
-                Thread.sleep(1000);
-                zeroGyroscope();
-            } catch (Exception e) {}
-        }).start();
+        // Zero all relative encoders
+        frontLeftModule.resetEncoders();
+        frontRightModule.resetEncoders();
+        backLeftModule.resetEncoders();
+        backRightModule.resetEncoders();
+
+        // Initialize and zero gyro
+        navx = new AHRS(SPI.Port.kMXP);
+        zeroGyroscope();
+
+        // Initialize odometry object
+        // odometry = new SwerveDriveOdometry(
+        //         KINEMATICS, getGyroscopeRotation(),
+        //         getSwerveModulePositions());
+        
+        // Initialize PID Controllers
+        xController = new PIDController(TRAJECTORY_TRANSLATION_P, 0., 0.);
+        yController = new PIDController(TRAJECTORY_TRANSLATION_P, 0., 0.);
+        rController = new PIDController(TRAJECTORY_ROTATION_P, 0., 0.);
+        rController.enableContinuousInput(-180., 180.);
+
+        pathController = new PPHolonomicDriveController(xController, yController, rController);
+
+        poseEstimator =  new SwerveDrivePoseEstimator(KINEMATICS, getGyroscopeRotation(), getSwerveModulePositions(), new Pose2d());
+
+        vision = new Vision();
     }
 
     /**
@@ -69,7 +115,12 @@ public class Drivetrain extends SubsystemBase {
      * robot is currently facing to the 'forwards' direction.
      */
     public void zeroGyroscope() {
-        navx.reset();
+        gyroOffset = -getGyroscopeAngle();
+        // navx.reset();
+    }
+
+    public double getGyroOffset() {
+        return gyroOffset;
     }
 
     /**
@@ -90,12 +141,77 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public double getGyroscopeAngle() {
-        return Math.IEEEremainder(navx.getAngle(), 360.);
+        return Math.IEEEremainder(360. - navx.getAngle(), 360.);
     }
 
     // Returns the measurment of the gyroscope yaw. Used for field-relative drive
     public Rotation2d getGyroscopeRotation() {
         return Rotation2d.fromDegrees(getGyroscopeAngle());
+    }
+
+    /** @return Pitch in degrees, -180 to 180 */
+    public double getPitch() {
+        return navx.getPitch();
+    }
+
+    /** @return Roll in degrees, -180 to 180 */
+    public double getRoll() {
+        return navx.getRoll();
+    }
+
+    public SwerveModulePosition[] getSwerveModulePositions() {
+        return new SwerveModulePosition[] {
+                frontLeftModule.getPosition(), frontRightModule.getPosition(), backLeftModule.getPosition(), backRightModule.getPosition()
+        };
+    }
+
+    public void resetOdometry(Pose2d pose) {
+        // odometry.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
+        poseEstimator.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
+    }
+
+    public void updateOdometry() {
+        poseEstimator.update(getGyroscopeRotation(), getSwerveModulePositions());
+
+        // odometry.update(getGyroscopeRotation(), getSwerveModulePositions());
+
+        Optional<EstimatedRobotPose> result = vision.getEstimatedGlobalPose(poseEstimator.getEstimatedPosition());
+
+        if (result.isPresent()) {
+            EstimatedRobotPose camPose = result.get();
+            poseEstimator.addVisionMeasurement(camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
+            SmartDashboard.putNumber("Camera X", camPose.estimatedPose.toPose2d().getX());
+            SmartDashboard.putNumber("Camera Y", camPose.estimatedPose.toPose2d().getY());
+        }
+    }
+
+    public Pose2d getPose() {
+        return poseEstimator.getEstimatedPosition();
+    }
+
+    public void setModuleStates(SwerveModuleState[] states) {
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
+        frontLeftModule.setState(states[0]);
+        frontRightModule.setState(states[1]);
+        backLeftModule.setState(states[2]);
+        backRightModule.setState(states[3]);
+    }
+
+    public void resetTrajectoryPIDControllers() {
+        xController.reset();
+        yController.reset();
+        rController.reset();
+    }
+    
+    /**
+     * Using the desiredState and the currentState, use the pathController to find
+     * the speeds the robot should be going
+     * 
+     * @param desiredState {@link PathPlannerState} robot needs to be at
+     * @return {@link ChassisSpeeds} motors should move at to reach desired state
+     */
+    public ChassisSpeeds calculateSpeedsTraj(PathPlannerState desiredState) {
+        return pathController.calculate(getPose(), desiredState);
     }
 
     /**
@@ -107,22 +223,7 @@ public class Drivetrain extends SubsystemBase {
      *                      drive the robot.
      */
     public void drive(ChassisSpeeds chassisSpeeds) {
-        if (!autoBalanceOn) {
-            // If we're not in autobalance mode, act normally.
-            this.chassisSpeeds = chassisSpeeds;
-        } else {
-            // If we are in autobalance mode, calculate a new ChassisSpeed object based off
-            // the measured pitch and roll
-            this.chassisSpeeds = new ChassisSpeeds(
-                    // X velocity is proportional to the sin of the roll angle
-                    -MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getRoll())), Math.toRadians(0.5))
-                            * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
-                    // Y velocity is proportional to the sin of the pitch angle
-                    -MathUtil.applyDeadband(Math.sin(Math.toRadians(navx.getPitch())), Math.toRadians(0.5))
-                            * MAX_VELOCITY_METERS_PER_SECOND * AUTOBALANCE_SPEED_FACTOR,
-                    // No rotational velocity
-                    0.0);
-        }
+        this.chassisSpeeds = chassisSpeeds;
     }
 
     /**
@@ -147,10 +248,20 @@ public class Drivetrain extends SubsystemBase {
             // If we are in wheel's locked mode, set the drive velocity to 0 so there is no
             // movment, and command the steer angle to either plus or minus 45 degrees to
             // form an X pattern.
-            frontLeftModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
-            frontRightModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-            backLeftModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-            backRightModule.setState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+            frontLeftModule.lockModule(45);
+            frontRightModule.lockModule(-45);
+            backLeftModule.lockModule(-45);
+            backRightModule.lockModule(45);
         }
+
+        // Update the odometry
+        updateOdometry();
+        SmartDashboard.putNumber("Estimator X", getPose().getX());
+        SmartDashboard.putNumber("Estimator Y", getPose().getY());
+        SmartDashboard.putNumber("Estimator R", getPose().getRotation().getDegrees());
+        // SmartDashboard.putNumber("Odometry X", odometry.getPoseMeters().getX());
+        // SmartDashboard.putNumber("Odometry Y", odometry.getPoseMeters().getY());
+        // SmartDashboard.putNumber("Odometry R", odometry.getPoseMeters().getRotation().getDegrees());
+        SmartDashboard.putNumber("R", getGyroscopeAngle());
     }
 }
