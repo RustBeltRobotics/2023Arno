@@ -25,7 +25,6 @@ public class Vision {
     public Vision() {
         // Change the name of your camera here to whatever it is in the PhotonVision UI.
         photonCamera = new PhotonCamera("AprilTagCamera");
-        // FIXME: Update photon library at Hotel.
         // FIXME: Figure out how to put this on the match tab
         try {
             // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.

@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -53,6 +54,9 @@ public class Drivetrain extends SubsystemBase {
     private PPHolonomicDriveController pathController;
 
     private final SwerveDrivePoseEstimator poseEstimator;
+
+    private PIDController pidX;
+    private PIDController pidY;
 
     // private Timer timer;
 
@@ -108,6 +112,12 @@ public class Drivetrain extends SubsystemBase {
         poseEstimator =  new SwerveDrivePoseEstimator(KINEMATICS, getGyroscopeRotation(), getSwerveModulePositions(), new Pose2d());
 
         vision = new Vision();
+
+        pidX = new PIDController(.25, 0., 0.);
+        pidY = new PIDController(.25, 0., 0.);
+
+        pidX.reset();
+        pidY.reset();
     }
 
     /**
@@ -116,7 +126,6 @@ public class Drivetrain extends SubsystemBase {
      */
     public void zeroGyroscope() {
         gyroOffset = -getGyroscopeAngle();
-        // navx.reset();
     }
 
     public double getGyroOffset() {
@@ -177,7 +186,7 @@ public class Drivetrain extends SubsystemBase {
 
         Optional<EstimatedRobotPose> result = vision.getEstimatedGlobalPose(poseEstimator.getEstimatedPosition());
 
-        if (result.isPresent()) {
+        if (result.isPresent() && DriverStation.isTeleopEnabled()) {
             EstimatedRobotPose camPose = result.get();
             poseEstimator.addVisionMeasurement(camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
             SmartDashboard.putNumber("Camera X", camPose.estimatedPose.toPose2d().getX());
