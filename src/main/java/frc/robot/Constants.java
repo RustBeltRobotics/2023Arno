@@ -95,19 +95,19 @@ public final class Constants {
     public static final double STEER_D = 0.0002;
     
     /** Max acceleration while balancing autonomously. Meters per second */
-    public static final double MAX_BALANCE_VELOCITY = 0.8;
+    public static final double MAX_BALANCE_VELOCITY = 0.85;
 
-    public static final double BALANCE_VELOCITY_TOLERANCE = 7;
+    public static final double BALANCE_VELOCITY_TOLERANCE = 7.;
 
-    public static final double BALANCE_ANGLE_TOLERANCE = 5;
+    public static final double BALANCE_ANGLE_TOLERANCE = 7.;
 
     public static final double BALANCE_P = 0.25;
 
     /** Max velocity while following a trajectory. Meters per second */
-    public static final double MAX_TRAJECTORY_VELOCITY = 5.;
+    public static final double MAX_TRAJECTORY_VELOCITY = 3.;
 
     /** Max acceleration while following a trajectory. Meters per second per second */
-    public static final double MAX_TRAJECTORY_ACCELERATION = 4.;
+    public static final double MAX_TRAJECTORY_ACCELERATION = 2.;
 
     public static final double TRAJECTORY_TRANSLATION_P = 2.;
 
@@ -316,21 +316,21 @@ public final class Constants {
 
     /** Angles are in degrees. Left column is for cone, right column for cube */
     public static final double[][] ARM_ANGLE_PRESET_SCORE = {
-        {-123.25, -110.},
-        {-116.5, -96.5},
+        {-127.5, -110.},
+        {-120., -96.5},
         {-53., -53.}
     };
 
     /** Extensions are in inches. Left column is for cone, right column for cube */
     public static final double[][] ARM_EXTENSION_PRESET_SCORE = {
         {26.5, 17.75},
-        {8.25, 0.},
+        {7.5, 0.},
         {0., 0.}
     };
 
     /** Angles are in degrees. 0 -> chute station, 1 -> double station */
     public static final double[] ARM_ANGLE_PRESET_HUMANPLAYER = {
-        28.75,
+        33.,
         -130.
     };
         

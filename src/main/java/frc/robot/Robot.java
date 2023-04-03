@@ -1,12 +1,12 @@
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.util.Map;
@@ -45,7 +45,8 @@ public class Robot extends TimedRobot {
     public void robotInit() {
         robotContainer = new RobotContainer();
         // FIXME: Figure out how to put this in the match tab
-        // CameraServer.startAutomaticCapture(0);
+        CameraServer.startAutomaticCapture(0);
+        CameraServer.startAutomaticCapture(1);
         // matchTab.add(CameraServer.startAutomaticCapture(0)).withPosition(3, 0).withSize(3, 3);
     }
 
@@ -60,7 +61,6 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
-        SmartDashboard.putString("Periodic Alliance Color:" , DriverStation.getAlliance().toString());
 
         boolean[][] subGridStatus = robotContainer.getSubGridStatus();
         grid00.setBoolean(subGridStatus[0][0]);
