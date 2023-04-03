@@ -44,10 +44,8 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         robotContainer = new RobotContainer();
-        // FIXME: Figure out how to put this in the match tab
         CameraServer.startAutomaticCapture(0);
         CameraServer.startAutomaticCapture(1);
-        // matchTab.add(CameraServer.startAutomaticCapture(0)).withPosition(3, 0).withSize(3, 3);
     }
 
     /**
@@ -110,11 +108,6 @@ public class Robot extends TimedRobot {
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
-        // TODO: Add code to put the robot in coast mode >5 seconds after disabled
-        // I think I posted a link to the issue in GitHub related to how we can do this.
-        // On second though, this is going to be tough to do since we are not creating
-        // our own CANSparkMax objects for the drive train. The arm should be easy
-        // enough
     }
 
     /** This function is called periodically when disabled. */

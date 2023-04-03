@@ -105,9 +105,6 @@ public class Arm extends SubsystemBase {
         rotationFF = new ArmFeedforward(ARM_ROTATION_S, ARM_ROTATION_G, ARM_ROTATION_V, ARM_ROTATION_A);
         extensionFF = new ArmFeedforward(ARM_EXTENSION_S, ARM_EXTENSION_G, ARM_EXTENSION_V, ARM_EXTENSION_A);
 
-        // timer = new Timer();
-        // timer.start();
-
         resetEncoders();
     }
 
@@ -281,14 +278,6 @@ public class Arm extends SubsystemBase {
 
     private double[] checkDriveRates(double rotationRate, double extensionRate) {
         calculateMaxExtension(getAngle());
-        // if (getExtension() >= calculateMaxExtension(getAngle())) {
-        //     extensionRate = MathUtil.clamp(extensionRate, Double.MIN_VALUE, 0);
-        //     if (getAngle() > 0) {
-        //         rotationRate = MathUtil.clamp(rotationRate, 0, Double.MAX_VALUE);
-        //     } else {
-        //         rotationRate = MathUtil.clamp(rotationRate, Double.MIN_VALUE, 0);
-        //     }
-        // }
         double[] rates = { rotationRate, extensionRate };
         return rates;
     }

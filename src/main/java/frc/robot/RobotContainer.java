@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.DefaultArmCommand;
 import frc.robot.commands.DefaultIntakeCommand;
 import frc.robot.commands.FieldOrientedDriveCommand;
-import frc.robot.commands.SnapRotate;
 import frc.robot.commands.autos.CableCone2P;
 import frc.robot.commands.autos.CableCube2P;
 import frc.robot.commands.autos.ChargingStation1PB;
@@ -20,7 +19,6 @@ import frc.robot.commands.autos.ChargingStation1PBM;
 import frc.robot.commands.autos.HumanPlayer3P;
 import frc.robot.commands.autos.HumanPlayerCone2P;
 import frc.robot.commands.autos.HumanPlayerCube2P;
-import frc.robot.commands.autos.TestAuto;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
@@ -65,14 +63,6 @@ public class RobotContainer {
 
     private String chunk = "";
 
-    // private final double DRIVE_X_PRESET_SCORE;
-
-    // private final double[] DRIVE_Y_PRESET_SCORE;
-
-    // private final double[] DRIVE_X_PRESET_HUMANPLAYER;
-
-    // private final double[] DRIVE_Y_PRESET_HUMANPLAYER;
-
     private ShuffleboardTab matchTab = Shuffleboard.getTab("Match");
 
     public static SendableChooser<Command> autoChooser = new SendableChooser<Command>();
@@ -103,18 +93,6 @@ public class RobotContainer {
                 () -> modifyAxis(operatorController.getRightTriggerAxis()),
                 () -> modifyAxis(operatorController.getLeftTriggerAxis())));
 
-        // if (DriverStation.getAlliance() == DriverStation.Alliance.Blue) {
-        //     DRIVE_X_PRESET_SCORE = DRIVE_X_PRESET_SCORE_BLUE;
-        //     DRIVE_Y_PRESET_SCORE = DRIVE_Y_PRESET_SCORE_BLUE;
-        //     DRIVE_X_PRESET_HUMANPLAYER = DRIVE_X_PRESET_HUMANPLAYER_BLUE;
-        //     DRIVE_Y_PRESET_HUMANPLAYER = DRIVE_Y_PRESET_HUMANPLAYER_BLUE;
-        // } else {
-        //     DRIVE_X_PRESET_SCORE = DRIVE_X_PRESET_SCORE_RED;
-        //     DRIVE_Y_PRESET_SCORE = DRIVE_Y_PRESET_SCORE_RED;
-        //     DRIVE_X_PRESET_HUMANPLAYER = DRIVE_X_PRESET_HUMANPLAYER_RED;
-        //     DRIVE_Y_PRESET_HUMANPLAYER = DRIVE_Y_PRESET_HUMANPLAYER_RED;
-        // }
-
         // Configure the button bindings
         configureButtonBindings();
         configureAutos();
@@ -127,17 +105,10 @@ public class RobotContainer {
         new Trigger(driverController::getAButton).onTrue(new InstantCommand(() -> drivetrain.zeroGyroscope()));
         // Pressing Y button locks the wheels in an X pattern
         new Trigger(driverController::getYButton).onTrue(new InstantCommand(() -> drivetrain.toggleWheelsLocked()));
-        // Pressing B button rotates clockwise to nearest 90
-        // new Trigger(driverController::getBButton).onTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> -1));
-        // Pressing X button rotates clockwise to nearest 90
-        // new Trigger(driverController::getXButton).onTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> 1));
-
         // Pressing the Right Bumper shifts to high speed
         new Trigger(driverController::getRightBumper).onTrue(new InstantCommand(() -> speedUp()));
         // Pressing the Left Bumper shifts to low speed
         new Trigger(driverController::getLeftBumper).onTrue(new InstantCommand(() -> speedDown()));
-
-        new Trigger(() -> operatorController.getPOV() != -1).whileTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> operatorController.getPOV()));
         
         // DriveToPose triggers (currently unused)
         // // Pressing Y button drives to the selected scoring position
@@ -180,10 +151,8 @@ public class RobotContainer {
         autoChooser.addOption("Charging Station 1PB", new ChargingStation1PB());
         autoChooser.addOption("Charging Station 1PBM", new ChargingStation1PBM());
         autoChooser.addOption("Human Player 3P", new HumanPlayer3P());
-        // // autoChooser.addOption("Human Player Balance", new HumanPlayerBalance());
         autoChooser.addOption("Human Player Cone 2P", new HumanPlayerCone2P());
         autoChooser.addOption("Human Player Cube 2P", new HumanPlayerCube2P());
-        autoChooser.addOption("Test", new TestAuto());
 
         matchTab.add(autoChooser).withPosition(2, 3);
     }

@@ -14,7 +14,7 @@ import static frc.robot.Constants.*;
  */
 public class BalanceRobot extends CommandBase {
     private double prevPitchAngle = 0;
-    // private double prevRollAngle = 0;
+
     private double prevTime = 0;
 
     public BalanceRobot() {
@@ -24,51 +24,35 @@ public class BalanceRobot extends CommandBase {
     @Override
     public void initialize() {
         prevPitchAngle = RobotContainer.drivetrain.getPitch();
-        // prevRollAngle = RobotContainer.drivetrain.getRoll();
         prevTime = Timer.getFPGATimestamp();
     }
 
     @Override
     public void execute() {
-        double forwardSpeed = 0.0;
-        // double strafeSpeed = 0.0;
+        double xSpeed = 0.0;
 
         double pitchAngle = RobotContainer.drivetrain.getPitch();
-        // double rollAngle = RobotContainer.drivetrain.getRoll();
 
         double time = Timer.getFPGATimestamp();
         double deltaTime = time - prevTime;
         double pitchVel = (pitchAngle - prevPitchAngle) / deltaTime;
-        // double rollVel = (rollAngle - prevRollAngle) / deltaTime;
 
         prevTime = time;
         prevPitchAngle = pitchAngle;
-        // prevRollAngle = rollAngle;
 
         // if we are facing up and the ramp is moving down (or vice versa) we are coming to balance so stop moving
         if (Math.abs(pitchVel) > BALANCE_VELOCITY_TOLERANCE || Math.abs(pitchAngle) < BALANCE_ANGLE_TOLERANCE) {
-            forwardSpeed = 0.0;
+            xSpeed = 0.0;
         } else {
             if (pitchAngle < 0) {
-                forwardSpeed = MAX_BALANCE_VELOCITY;
+                xSpeed = MAX_BALANCE_VELOCITY;
             } else {
 
-                forwardSpeed = -MAX_BALANCE_VELOCITY;
+                xSpeed = -MAX_BALANCE_VELOCITY;
             }
         }
 
-        // if (Math.abs(rollVel) > BALANCE_VELOCITY_TOLERANCE || Math.abs(rollAngle) < BALANCE_ANGLE_TOLERANCE) {
-        //     strafeSpeed = 0.0;
-        // } else {
-        //     if (rollAngle < 0) {
-        //         strafeSpeed = MAX_BALANCE_VELOCITY;
-        //     } else {
-
-        //         strafeSpeed = -MAX_BALANCE_VELOCITY;
-        //     }
-        // }
-
-        RobotContainer.drivetrain.drive(new ChassisSpeeds(forwardSpeed, 0., 0.)); //strafeSpeed, 0.));
+        RobotContainer.drivetrain.drive(new ChassisSpeeds(xSpeed, 0., 0.));
     }
 
     @Override

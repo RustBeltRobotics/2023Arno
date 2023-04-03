@@ -14,7 +14,7 @@ import static frc.robot.Constants.*;
 
 public class ChargingStation1PBM extends SequentialCommandGroup {
     public ChargingStation1PBM() {
-        List<PathPlannerTrajectory> path = PathPlanner.loadPathGroup("Charging Station 1PBM", 1.5, 1.5);
+        List<PathPlannerTrajectory> path = PathPlanner.loadPathGroup("Charging Station 1PBM", MAX_BALANCE_TRAJECTORY_VELOCITY, MAX_BALANCE_TRAJECTORY_ACCELERATION);
 
         addCommands(
                 // Place Cube High

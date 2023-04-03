@@ -11,7 +11,6 @@ import java.util.function.DoubleSupplier;
  * relative to the field, not the robot
  */
 public class FieldOrientedDriveCommand extends CommandBase {
-    // private final Drivetrain drivetrain;
     private final Drivetrain drivetrain;
 
     // DoubleSupplier objects need to be used, not double
