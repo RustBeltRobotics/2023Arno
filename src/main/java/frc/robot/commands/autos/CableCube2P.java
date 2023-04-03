@@ -34,24 +34,24 @@ public class CableCube2P extends SequentialCommandGroup {
                         new InstantCommand(() -> RobotContainer.intake.runIntake(1., true), RobotContainer.intake),
                         RobotContainer.arm.driveArmTo(() -> ARM_ANGLE_PRESET_GROUND_PICKUP[1], () -> ARM_EXTENSION_PRESET_GROUND_PICKUP[1])
                     )
-                ),
+                )
 
-                new WaitCommand(.25),
+                // new WaitCommand(.25),
 
-                // drive to score cube mid
-                new ParallelCommandGroup(
-                    new DriveFollowTrajectory(path.get(1)),
-                    new SequentialCommandGroup(
-                        new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),
-                        RobotContainer.arm.centerArm(),
-                        new WaitCommand(1.5),
-                        RobotContainer.arm.driveArmTo(() -> ARM_ANGLE_PRESET_SCORE[1][1], () -> ARM_EXTENSION_PRESET_SCORE[1][1])
-                    )
-                ),
-                new InstantCommand(() -> RobotContainer.intake.runIntake(1., false), RobotContainer.intake),
-                new WaitCommand(.25),
-                new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),
-                RobotContainer.arm.centerArm()
+                // // drive to score cube mid
+                // new ParallelCommandGroup(
+                //     new DriveFollowTrajectory(path.get(1)),
+                //     new SequentialCommandGroup(
+                //         new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),
+                //         RobotContainer.arm.centerArm(),
+                //         new WaitCommand(1.5),
+                //         RobotContainer.arm.driveArmTo(() -> ARM_ANGLE_PRESET_SCORE[1][1], () -> ARM_EXTENSION_PRESET_SCORE[1][1])
+                //     )
+                // ),
+                // new InstantCommand(() -> RobotContainer.intake.runIntake(1., false), RobotContainer.intake),
+                // new WaitCommand(.25),
+                // new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),
+                // RobotContainer.arm.centerArm()
             );
     }
 }

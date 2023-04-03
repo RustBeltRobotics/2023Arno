@@ -11,12 +11,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import java.util.Optional;
-import org.photonvision.EstimatedRobotPose;
 
 import static frc.robot.Constants.*;
 
@@ -33,7 +30,7 @@ public class Drivetrain extends SubsystemBase {
     private final SwerveModule backLeftModule;
     private final SwerveModule backRightModule;
 
-    private final Vision vision;
+    // private final Vision vision;
 
     // The speed of the robot in x and y translational velocities and rotational velocity
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
@@ -111,7 +108,7 @@ public class Drivetrain extends SubsystemBase {
 
         poseEstimator =  new SwerveDrivePoseEstimator(KINEMATICS, getGyroscopeRotation(), getSwerveModulePositions(), new Pose2d());
 
-        vision = new Vision();
+        // vision = new Vision();
 
         pidX = new PIDController(.25, 0., 0.);
         pidY = new PIDController(.25, 0., 0.);
@@ -184,14 +181,14 @@ public class Drivetrain extends SubsystemBase {
 
         // odometry.update(getGyroscopeRotation(), getSwerveModulePositions());
 
-        Optional<EstimatedRobotPose> result = vision.getEstimatedGlobalPose(poseEstimator.getEstimatedPosition());
+        // Optional<EstimatedRobotPose> result = vision.getEstimatedGlobalPose(poseEstimator.getEstimatedPosition());
 
-        if (result.isPresent() && DriverStation.isTeleopEnabled()) {
-            EstimatedRobotPose camPose = result.get();
-            poseEstimator.addVisionMeasurement(camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
-            SmartDashboard.putNumber("Camera X", camPose.estimatedPose.toPose2d().getX());
-            SmartDashboard.putNumber("Camera Y", camPose.estimatedPose.toPose2d().getY());
-        }
+        // if (result.isPresent() && DriverStation.isTeleopEnabled()) {
+        //     EstimatedRobotPose camPose = result.get();
+        //     poseEstimator.addVisionMeasurement(camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
+        //     SmartDashboard.putNumber("Camera X", camPose.estimatedPose.toPose2d().getX());
+        //     SmartDashboard.putNumber("Camera Y", camPose.estimatedPose.toPose2d().getY());
+        // }
     }
 
     public Pose2d getPose() {

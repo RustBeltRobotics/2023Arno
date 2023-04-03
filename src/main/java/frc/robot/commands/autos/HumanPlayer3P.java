@@ -17,9 +17,9 @@ public class HumanPlayer3P extends SequentialCommandGroup {
         List<PathPlannerTrajectory> path = PathPlanner.loadPathGroup("Human Player 3P", 5.5, 4.5);
 
         addCommands(
-                // Place Cone High
+                // Place Cone Mid
                 new InstantCommand(() -> RobotContainer.intake.selectCone(), RobotContainer.intake),
-                RobotContainer.arm.driveArmTo(() -> ARM_ANGLE_PRESET_SCORE[1][0], () -> ARM_EXTENSION_PRESET_SCORE[0][0]),
+                RobotContainer.arm.driveArmTo(() -> ARM_ANGLE_PRESET_SCORE[1][0], () -> ARM_EXTENSION_PRESET_SCORE[1][0]),
                 new InstantCommand(() -> RobotContainer.intake.runIntake(1., false), RobotContainer.intake),
                 new WaitCommand(.25),
                 new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),

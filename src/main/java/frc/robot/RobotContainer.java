@@ -46,7 +46,7 @@ public class RobotContainer {
     public static final XboxController operatorController = new XboxController(1);
 
     // Limits maximum speed
-    private double maxSpeedFactor = 0.5;
+    private double maxSpeedFactor = .5;
 
     private int selectedRow = 0;
     private int selectedCol = 0;
@@ -87,8 +87,7 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(new FieldOrientedDriveCommand(drivetrain,
             () -> -modifyAxis(driverController.getLeftY()) * MAX_VELOCITY_METERS_PER_SECOND * maxSpeedFactor,
             () -> -modifyAxis(driverController.getLeftX()) * MAX_VELOCITY_METERS_PER_SECOND * maxSpeedFactor,
-            () -> -modifyAxis(driverController.getRightX()) * MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * maxSpeedFactor,
-            () -> driverController.getPOV()));
+            () -> -modifyAxis(driverController.getRightX()) * MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * maxSpeedFactor));
 
         // Set up the default command for the arm
         // Right stick Y axis -> arm rotation
@@ -129,14 +128,16 @@ public class RobotContainer {
         // Pressing Y button locks the wheels in an X pattern
         new Trigger(driverController::getYButton).onTrue(new InstantCommand(() -> drivetrain.toggleWheelsLocked()));
         // Pressing B button rotates clockwise to nearest 90
-        new Trigger(driverController::getBButton).onTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> -1));
+        // new Trigger(driverController::getBButton).onTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> -1));
         // Pressing X button rotates clockwise to nearest 90
-        new Trigger(driverController::getXButton).onTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> 1));
+        // new Trigger(driverController::getXButton).onTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> 1));
 
         // Pressing the Right Bumper shifts to high speed
         new Trigger(driverController::getRightBumper).onTrue(new InstantCommand(() -> speedUp()));
         // Pressing the Left Bumper shifts to low speed
         new Trigger(driverController::getLeftBumper).onTrue(new InstantCommand(() -> speedDown()));
+
+        new Trigger(() -> operatorController.getPOV() != -1).whileTrue(new SnapRotate(() -> drivetrain.getGyroscopeAngle(), () -> operatorController.getPOV()));
         
         // DriveToPose triggers (currently unused)
         // // Pressing Y button drives to the selected scoring position

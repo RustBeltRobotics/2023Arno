@@ -24,22 +24,29 @@ public class SnapRotate extends CommandBase {
     public SnapRotate(DoubleSupplier rotationSupplier, IntSupplier directionSupplier) {
         addRequirements(RobotContainer.drivetrain);
         rCurrent = rotationSupplier.getAsDouble();
-        rGoal = directionSupplier.getAsInt() == -1 ? getNegative() : getPositive();
+        if (rCurrent == 0) rGoal = 0.;
+        else if (rCurrent == 90) rGoal = -90;
+        else if (rCurrent == 270) rGoal = 90;
+        else if (rCurrent == 180) {
+            if (rCurrent > 0) rGoal = 180;
+            else rGoal = -180.;
+        }
+        // rGoal = directionSupplier.getAsInt() == -1 ? getNegative() : getPositive();
     }
 
-    public double getPositive() {
-        if (rCurrent >= 90.) return 180.;
-        else if (rCurrent >= 0.) return 90.;
-        else if (rCurrent >= -90.) return 0.;
-        else return -90;
-    }
+    // public double getPositive() {
+    //     if (rCurrent >= 90.) return 180.;
+    //     else if (rCurrent >= 0.) return 90.;
+    //     else if (rCurrent >= -90.) return 0.;
+    //     else return -90;
+    // }
 
-    public double getNegative() {
-        if (rCurrent <= -90.) return -180.;
-        else if (rCurrent <= 0.) return -90.;
-        else if (rCurrent <= 90.) return 0.;
-        else return 90;
-    }
+    // public double getNegative() {
+    //     if (rCurrent <= -90.) return -180.;
+    //     else if (rCurrent <= 0.) return -90.;
+    //     else if (rCurrent <= 90.) return 0.;
+    //     else return 90;
+    // }
 
     // Called when the command is initially scheduled.
     @Override
