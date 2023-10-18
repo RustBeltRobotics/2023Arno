@@ -44,13 +44,11 @@ public class RobotOrientedDriveCommand extends CommandBase {
     public void execute() {
         int pov = povSupplier.getAsInt();
         if (pov == -1) {
-            // Drive normally
             drivetrain.drive(new ChassisSpeeds(
                     translationXSupplier.getAsDouble(),
                     translationYSupplier.getAsDouble(),
                     rotationSupplier.getAsDouble()));
         } else {
-            // Drive normally
             drivetrain.drive(new ChassisSpeeds(
                     Math.cos(Math.toRadians(pov)),
                     Math.sin(Math.toRadians(pov - 180)),

@@ -112,7 +112,7 @@ public class SwerveModule {
             return;
         }
         state = SwerveModuleState.optimize(state, getState().angle);
-        driveMotor.set(state.speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND); // TODO: Replace with tuned PID/FF
+        driveMotor.set(state.speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND);
         steerMotor.set(steerPID.calculate(getSteerPosition(), state.angle.getDegrees()));
     }
 

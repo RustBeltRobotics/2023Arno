@@ -101,13 +101,17 @@ public final class Constants {
 
     public static final double BALANCE_ANGLE_TOLERANCE = 7.;
 
-    public static final double BALANCE_P = 0.25;
-
     /** Max velocity while following a trajectory. Meters per second */
     public static final double MAX_TRAJECTORY_VELOCITY = 3.;
 
     /** Max acceleration while following a trajectory. Meters per second per second */
     public static final double MAX_TRAJECTORY_ACCELERATION = 2.;
+
+    /** Max velocity while following a balance auto trajectory. Meters per second */
+    public static final double MAX_BALANCE_TRAJECTORY_VELOCITY = 3.;
+
+    /** Max acceleration while following a balance auto trajectory. Meters per second per second */
+    public static final double MAX_BALANCE_TRAJECTORY_ACCELERATION = 2.;
 
     public static final double TRAJECTORY_TRANSLATION_P = 2.;
 
@@ -149,7 +153,7 @@ public final class Constants {
     public static final int ARM_ABSOLUTE_ENCODER = 22;
 
     /** The max allowable angle of the arm */
-    public static final double MAX_ARM_ANGLE_DEGREES = 120.;
+    public static final double MAX_ARM_ANGLE_DEGREES = 130.;
     /** The min allowable angle of the arm */
     public static final double MIN_ARM_ANGLE_DEGREES = -130.;
 
@@ -160,7 +164,7 @@ public final class Constants {
     /** The angle offset in degress for the arm's absolute encoder */
     public static final double ARM_ABSOLUTE_OFFSET = 138.427734375;
 
-    /** The allowable delta betwee the arm absolute encoder and relative encoders, degrees */
+    /** The allowable delta between the arm absolute encoder and relative encoders, degrees */
     public static final double ARM_ABSOLUTE_TOLERANCE = 15.;
 
     /**
@@ -191,6 +195,7 @@ public final class Constants {
      * Output stackup: Gear ratio times pitch circumference
      */
     public static final double ARM_EXTENSION_CONVERSION = (1. / (4. * 4.)) * (3. * Math.PI);
+
     /**
      * Maximum possible arm extension velocity in inches per second
      * <p>
@@ -284,22 +289,6 @@ public final class Constants {
         DRIVE_Y_PRESET_HUMANPLAYER_BLUE[2],
         DRIVE_Y_PRESET_HUMANPLAYER_BLUE[1]
     };
-
-    public static final double CHARGE_STATION_X_BLUE = 153. * .0254;
-
-    public static final double CHARGE_STATION_X_RED = FIELD_LENGTH - CHARGE_STATION_X_BLUE;
-
-    public static final double CHARGE_STATION_Y_BLUE = 108.015 * .0254;
-
-    public static final double CHARGE_STATION_Y_RED = CHARGE_STATION_Y_BLUE;
-
-    public static final double MOBILITY_X_BLUE = 193.125 * .0254;
-    
-    public static final double MOBILITY_X_RED = FIELD_LENGTH - MOBILITY_X_BLUE;
-    
-    public static final double MOBILITY_Y_BLUE = 108.015 * .0254;
-    
-    public static final double MOBILITY_Y_RED = MOBILITY_Y_BLUE;
 
     public static final double GROUND_PIECE_X_BLUE = 278.25 * .0254;
 

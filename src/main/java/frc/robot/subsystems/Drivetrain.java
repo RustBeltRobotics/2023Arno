@@ -12,7 +12,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.*;
@@ -30,8 +29,6 @@ public class Drivetrain extends SubsystemBase {
     private final SwerveModule backLeftModule;
     private final SwerveModule backRightModule;
 
-    // private final Vision vision;
-
     // The speed of the robot in x and y translational velocities and rotational velocity
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
@@ -40,9 +37,6 @@ public class Drivetrain extends SubsystemBase {
 
     // Boolean statement to control autobalance functionality
     private boolean autoBalanceOn = false;
-
-    // // Odometry object for the drivetrain
-    // private SwerveDriveOdometry odometry;
 
     // PID controllers used for driving to a commanded x/y/r location
     private PIDController xController;
@@ -54,8 +48,6 @@ public class Drivetrain extends SubsystemBase {
 
     private PIDController pidX;
     private PIDController pidY;
-
-    // private Timer timer;
 
     public Drivetrain() {
         // Initialize all modules
@@ -93,11 +85,6 @@ public class Drivetrain extends SubsystemBase {
         navx = new AHRS(SPI.Port.kMXP);
         zeroGyroscope();
 
-        // Initialize odometry object
-        // odometry = new SwerveDriveOdometry(
-        //         KINEMATICS, getGyroscopeRotation(),
-        //         getSwerveModulePositions());
-        
         // Initialize PID Controllers
         xController = new PIDController(TRAJECTORY_TRANSLATION_P, 0., 0.);
         yController = new PIDController(TRAJECTORY_TRANSLATION_P, 0., 0.);
@@ -107,8 +94,6 @@ public class Drivetrain extends SubsystemBase {
         pathController = new PPHolonomicDriveController(xController, yController, rController);
 
         poseEstimator =  new SwerveDrivePoseEstimator(KINEMATICS, getGyroscopeRotation(), getSwerveModulePositions(), new Pose2d());
-
-        // vision = new Vision();
 
         pidX = new PIDController(.25, 0., 0.);
         pidY = new PIDController(.25, 0., 0.);
@@ -172,23 +157,11 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public void resetOdometry(Pose2d pose) {
-        // odometry.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
         poseEstimator.resetPosition(getGyroscopeRotation(), getSwerveModulePositions(), pose);
     }
 
     public void updateOdometry() {
         poseEstimator.update(getGyroscopeRotation(), getSwerveModulePositions());
-
-        // odometry.update(getGyroscopeRotation(), getSwerveModulePositions());
-
-        // Optional<EstimatedRobotPose> result = vision.getEstimatedGlobalPose(poseEstimator.getEstimatedPosition());
-
-        // if (result.isPresent() && DriverStation.isTeleopEnabled()) {
-        //     EstimatedRobotPose camPose = result.get();
-        //     poseEstimator.addVisionMeasurement(camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
-        //     SmartDashboard.putNumber("Camera X", camPose.estimatedPose.toPose2d().getX());
-        //     SmartDashboard.putNumber("Camera Y", camPose.estimatedPose.toPose2d().getY());
-        // }
     }
 
     public Pose2d getPose() {
@@ -262,12 +235,5 @@ public class Drivetrain extends SubsystemBase {
 
         // Update the odometry
         updateOdometry();
-        SmartDashboard.putNumber("Estimator X", getPose().getX());
-        SmartDashboard.putNumber("Estimator Y", getPose().getY());
-        SmartDashboard.putNumber("Estimator R", getPose().getRotation().getDegrees());
-        // SmartDashboard.putNumber("Odometry X", odometry.getPoseMeters().getX());
-        // SmartDashboard.putNumber("Odometry Y", odometry.getPoseMeters().getY());
-        // SmartDashboard.putNumber("Odometry R", odometry.getPoseMeters().getRotation().getDegrees());
-        SmartDashboard.putNumber("R", getGyroscopeAngle());
     }
 }

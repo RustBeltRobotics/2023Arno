@@ -14,7 +14,6 @@ import static frc.robot.Constants.*;
  * relative to the field, not the robot
  */
 public class FieldOrientedPrecisionDriveCommand extends CommandBase {
-    // private final Drivetrain drivetrain;
     private final Drivetrain drivetrain;
 
     // DoubleSupplier objects need to be used, not double
@@ -54,7 +53,6 @@ public class FieldOrientedPrecisionDriveCommand extends CommandBase {
                     translationYSupplier.getAsDouble(),
                     rotationSupplier.getAsDouble(),
                     Rotation2d.fromDegrees(drivetrain.getGyroscopeAngle() + drivetrain.getGyroOffset())));
-            // drivetrain.getGyroscopeRotation()));
         } else {
             // Drive in precision mode
             drivetrain.drive(ChassisSpeeds.fromFieldRelativeSpeeds(
