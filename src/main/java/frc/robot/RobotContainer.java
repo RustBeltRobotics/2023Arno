@@ -126,9 +126,9 @@ public class RobotContainer {
         new Trigger(operatorController::getAButton).whileTrue(arm.centerArm());
         // Holding Y button rotates and extends arm to the currently selecting scoring position
         new Trigger(operatorController::getYButton).whileTrue(arm.driveArmTo(() -> ARM_ANGLE_PRESET_SCORE[selectedRow][intake.gamepieceIsCube ? 1 : 0], () -> ARM_EXTENSION_PRESET_SCORE[selectedRow][intake.gamepieceIsCube ? 1 : 0]));
-        // Holding B button rotates and extends arm to the chute human player station position
+        // Holding B button rotates and extends arm to the single human player station position
         new Trigger(operatorController::getBButton).whileTrue(arm.driveArmTo(() -> ARM_ANGLE_PRESET_HUMANPLAYER[0], () -> ARM_EXTENSION_PRESET_HUMANPLAYER[0]));
-        // Holding B button rotates and extends arm to the chute human player station position
+        // Holding B button rotates and extends arm to the double human player station position
         new Trigger(operatorController::getXButton).whileTrue(arm.driveArmTo(() -> ARM_ANGLE_PRESET_HUMANPLAYER[1], () -> ARM_EXTENSION_PRESET_HUMANPLAYER[1]));
         // Holding back button rotates and extends arm to ground pickup from back position
         new Trigger(operatorController::getBackButton).whileTrue(arm.driveArmTo(() -> ARM_ANGLE_PRESET_GROUND_PICKUP[0], () -> ARM_EXTENSION_PRESET_GROUND_PICKUP[0]));
