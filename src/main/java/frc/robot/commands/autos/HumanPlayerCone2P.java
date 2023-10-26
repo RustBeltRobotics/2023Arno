@@ -25,6 +25,8 @@ public class HumanPlayerCone2P extends SequentialCommandGroup {
                 new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),
                 RobotContainer.arm.centerArm(),
 
+                new InstantCommand(() -> RobotContainer.drivetrain.zeroGyroscope(180.)),
+
                 // Drive to game piece and aquire
                 new ParallelCommandGroup(
                     new DriveFollowTrajectory(path.get(0)),

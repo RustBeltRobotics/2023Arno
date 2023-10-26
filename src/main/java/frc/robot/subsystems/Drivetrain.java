@@ -20,7 +20,10 @@ public class Drivetrain extends SubsystemBase {
     // NavX connected over MXP
     public final AHRS navx;
 
-    /** For user to reset zero for "forward" on the robot while maintaining absolute field zero for odometry */
+    /**
+     * For user to reset zero for "forward" on the robot while maintaining absolute
+     * field zero for odometry
+     */
     private double gyroOffset;
 
     // These are our modules. We initialize them in the constructor.
@@ -29,7 +32,8 @@ public class Drivetrain extends SubsystemBase {
     private final SwerveModule backLeftModule;
     private final SwerveModule backRightModule;
 
-    // The speed of the robot in x and y translational velocities and rotational velocity
+    // The speed of the robot in x and y translational velocities and rotational
+    // velocity
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
     // Boolean statement to control locking the wheels in an X-position
@@ -50,30 +54,31 @@ public class Drivetrain extends SubsystemBase {
     private PIDController pidY;
 
     public Drivetrain() {
-        // Initialize all modules
+        // Initialize all modules - Switched all the modules around at Ruckus because
+        // the arm was flipped around so everything was backwards
         frontLeftModule = new SwerveModule(
-                FRONT_LEFT_MODULE_DRIVE_MOTOR,
-                FRONT_LEFT_MODULE_STEER_MOTOR,
-                FRONT_LEFT_MODULE_STEER_ENCODER,
-                FRONT_LEFT_MODULE_STEER_OFFSET);
+                BACK_RIGHT_MODULE_DRIVE_MOTOR,
+                BACK_RIGHT_MODULE_STEER_MOTOR,
+                BACK_RIGHT_MODULE_STEER_ENCODER,
+                BACK_RIGHT_MODULE_STEER_OFFSET);
 
         frontRightModule = new SwerveModule(
-                FRONT_RIGHT_MODULE_DRIVE_MOTOR,
-                FRONT_RIGHT_MODULE_STEER_MOTOR,
-                FRONT_RIGHT_MODULE_STEER_ENCODER,
-                FRONT_RIGHT_MODULE_STEER_OFFSET);
-
-        backLeftModule = new SwerveModule(
                 BACK_LEFT_MODULE_DRIVE_MOTOR,
                 BACK_LEFT_MODULE_STEER_MOTOR,
                 BACK_LEFT_MODULE_STEER_ENCODER,
                 BACK_LEFT_MODULE_STEER_OFFSET);
 
+        backLeftModule = new SwerveModule(
+                FRONT_RIGHT_MODULE_DRIVE_MOTOR,
+                FRONT_RIGHT_MODULE_STEER_MOTOR,
+                FRONT_RIGHT_MODULE_STEER_ENCODER,
+                FRONT_RIGHT_MODULE_STEER_OFFSET);
+
         backRightModule = new SwerveModule(
-                BACK_RIGHT_MODULE_DRIVE_MOTOR,
-                BACK_RIGHT_MODULE_STEER_MOTOR,
-                BACK_RIGHT_MODULE_STEER_ENCODER,
-                BACK_RIGHT_MODULE_STEER_OFFSET);
+                FRONT_LEFT_MODULE_DRIVE_MOTOR,
+                FRONT_LEFT_MODULE_STEER_MOTOR,
+                FRONT_LEFT_MODULE_STEER_ENCODER,
+                FRONT_LEFT_MODULE_STEER_OFFSET);
 
         // Zero all relative encoders
         frontLeftModule.resetEncoders();
@@ -93,7 +98,8 @@ public class Drivetrain extends SubsystemBase {
 
         pathController = new PPHolonomicDriveController(xController, yController, rController);
 
-        poseEstimator =  new SwerveDrivePoseEstimator(KINEMATICS, getGyroscopeRotation(), getSwerveModulePositions(), new Pose2d());
+        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getGyroscopeRotation(), getSwerveModulePositions(),
+                new Pose2d());
 
         pidX = new PIDController(.25, 0., 0.);
         pidY = new PIDController(.25, 0., 0.);
@@ -106,8 +112,12 @@ public class Drivetrain extends SubsystemBase {
      * Sets the gyroscope angle to zero. This can be used to set the direction the
      * robot is currently facing to the 'forwards' direction.
      */
+    public void zeroGyroscope(double angle) {
+        gyroOffset = -getGyroscopeAngle() + angle;
+    }
+
     public void zeroGyroscope() {
-        gyroOffset = -getGyroscopeAngle();
+        zeroGyroscope(0.0);
     }
 
     public double getGyroOffset() {
@@ -152,7 +162,8 @@ public class Drivetrain extends SubsystemBase {
 
     public SwerveModulePosition[] getSwerveModulePositions() {
         return new SwerveModulePosition[] {
-                frontLeftModule.getPosition(), frontRightModule.getPosition(), backLeftModule.getPosition(), backRightModule.getPosition()
+                frontLeftModule.getPosition(), frontRightModule.getPosition(), backLeftModule.getPosition(),
+                backRightModule.getPosition()
         };
     }
 
@@ -181,7 +192,7 @@ public class Drivetrain extends SubsystemBase {
         yController.reset();
         rController.reset();
     }
-    
+
     /**
      * Using the desiredState and the currentState, use the pathController to find
      * the speeds the robot should be going
@@ -215,7 +226,8 @@ public class Drivetrain extends SubsystemBase {
     public void periodic() {
         // Convert from ChassisSpeeds to SwerveModuleStates
         SwerveModuleState[] states = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
-        // Make sure no modules are being commanded to velocites greater than the max possible velocity
+        // Make sure no modules are being commanded to velocites greater than the max
+        // possible velocity
         SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
         if (!wheelsLocked) {
             // If we are not in wheel's locked mode, set the states normally

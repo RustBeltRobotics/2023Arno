@@ -63,8 +63,8 @@ public class Intake extends SubsystemBase {
             // Intake 
             if (gamepieceIsCube == true) {
                 // Cube
-                leftSpeed *= 1.;
-                rightSpeed *= 1.;
+                leftSpeed *= -1.;
+                rightSpeed *= -1.;
             } else {
                 // Cone
                 leftSpeed *= 1.;
@@ -74,8 +74,8 @@ public class Intake extends SubsystemBase {
             // Outtake
             if (gamepieceIsCube == true) {
                 // Cube
-                leftSpeed *= -1.;
-                rightSpeed *= -1.;
+                leftSpeed *= 1.;
+                rightSpeed *= 1.;
             } else {
                 // Cone
                 leftSpeed *= -1.;

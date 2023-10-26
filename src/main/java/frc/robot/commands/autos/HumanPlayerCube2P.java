@@ -25,6 +25,8 @@ public class HumanPlayerCube2P extends SequentialCommandGroup {
                 new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),
                 RobotContainer.arm.centerArm(),
 
+                new InstantCommand(() -> RobotContainer.drivetrain.zeroGyroscope(0.0)),
+
                 // Drive to game piece and aquire
                 new ParallelCommandGroup(
                     new DriveFollowTrajectory(path.get(0)),

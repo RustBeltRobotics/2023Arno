@@ -93,7 +93,7 @@ public final class Constants {
     public static final double STEER_P = 0.008;
     public static final double STEER_I = 0.;
     public static final double STEER_D = 0.0002;
-    
+
     /** Max acceleration while balancing autonomously. Meters per second */
     public static final double MAX_BALANCE_VELOCITY = 0.85;
 
@@ -104,13 +104,18 @@ public final class Constants {
     /** Max velocity while following a trajectory. Meters per second */
     public static final double MAX_TRAJECTORY_VELOCITY = 3.;
 
-    /** Max acceleration while following a trajectory. Meters per second per second */
+    /**
+     * Max acceleration while following a trajectory. Meters per second per second
+     */
     public static final double MAX_TRAJECTORY_ACCELERATION = 2.;
 
     /** Max velocity while following a balance auto trajectory. Meters per second */
     public static final double MAX_BALANCE_TRAJECTORY_VELOCITY = 3.;
 
-    /** Max acceleration while following a balance auto trajectory. Meters per second per second */
+    /**
+     * Max acceleration while following a balance auto trajectory. Meters per second
+     * per second
+     */
     public static final double MAX_BALANCE_TRAJECTORY_ACCELERATION = 2.;
 
     public static final double TRAJECTORY_TRANSLATION_P = 2.;
@@ -139,11 +144,12 @@ public final class Constants {
     public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 32;
 
     // Module Offsets - rotational offsets such that the modules all read 0 degrees
-    // when facing forward
-    public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -0.62;
-    public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -246.09;
-    public static final double BACK_LEFT_MODULE_STEER_OFFSET = -288.37;
-    public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -345.23;
+    // when facing forward. Added 180 to each at Ruckus because we flipped the arm
+    // around so everything is backwards
+    public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -0.62 + 180.;
+    public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -246.09 + 180.;
+    public static final double BACK_LEFT_MODULE_STEER_OFFSET = -288.37 + 180.;
+    public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -345.23 + 180.;
 
     // Arm Constants
     // CAN IDs
@@ -162,9 +168,12 @@ public final class Constants {
     /** The min allowable extension of the arm */
     public static final double MIN_ARM_EXTENSION_INCHES = 0.;
     /** The angle offset in degress for the arm's absolute encoder */
-    public static final double ARM_ABSOLUTE_OFFSET = 138.427734375;
+    public static final double ARM_ABSOLUTE_OFFSET = -158.37890625; // Old - 138.427734375;
 
-    /** The allowable delta between the arm absolute encoder and relative encoders, degrees */
+    /**
+     * The allowable delta between the arm absolute encoder and relative encoders,
+     * degrees
+     */
     public static final double ARM_ABSOLUTE_TOLERANCE = 15.;
 
     /**
@@ -174,8 +183,8 @@ public final class Constants {
      * <p>
      * Output stackup: Gear ratio times pulley ratio
      */
-    public static final double ARM_ROTATION_CONVERSION = (360. / ((4. * 4. * 3.) * (36./20.)));
-    
+    public static final double ARM_ROTATION_CONVERSION = (360. / ((4. * 4. * 3.) * (36. / 20.)));
+
     /**
      * Maximum possible arm rotation velocity in degrees per second
      * <p>
@@ -185,7 +194,7 @@ public final class Constants {
 
     public static final double ARM_ROTATION_TRAINING_WHEELS = 1.;
 
-    public static final double ARM_EXTENSION_TRAINING_WHEELS = 0.25;
+    public static final double ARM_EXTENSION_TRAINING_WHEELS = 1.;
 
     /**
      * Unit conversion from motor rotation to arm extension inches
@@ -233,8 +242,8 @@ public final class Constants {
     public static final int LEFT_INTAKE_MOTOR = 41;
 
     // Camera constants
-    public static final double CAMERA_X = (-((24./2.) - 10.)) * 0.0254;
-    public static final double CAMERA_Y = (((24./2.) - 8.75)) * 0.0254;
+    public static final double CAMERA_X = (-((24. / 2.) - 10.)) * 0.0254;
+    public static final double CAMERA_Y = (((24. / 2.) - 8.75)) * 0.0254;
     public static final double CAMERA_Z = (25.5625) * 0.0254;
 
     // Location Presets
@@ -251,43 +260,55 @@ public final class Constants {
 
     /** Distance in meters. */
     public static final double[] DRIVE_Y_PRESET_SCORE_BLUE = {
-        20.185 * .0254,
-        42.185 * .0254,
-        64.185 * .0254,
-        86.185 * .0254,
-        108.185 * .0254,
-        130.185 * .0254,
-        152.185 * .0254,
-        174.185 * .0254,
-        196.185 * .0254
+            20.185 * .0254,
+            42.185 * .0254,
+            64.185 * .0254,
+            86.185 * .0254,
+            108.185 * .0254,
+            130.185 * .0254,
+            152.185 * .0254,
+            174.185 * .0254,
+            196.185 * .0254
     };
     /** Distance in meters. */
     public static final double[] DRIVE_Y_PRESET_SCORE_RED = DRIVE_Y_PRESET_SCORE_BLUE;
 
-    /** Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double station right */
+    /**
+     * Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double
+     * station right
+     */
     public static final double[] DRIVE_X_PRESET_HUMANPLAYER_BLUE = {
-        91.2685 * .0254,
-        14. * .0254 + ROBOT_WIDTH / 2.,
-        14. * .0254 + ROBOT_WIDTH / 2.
+            91.2685 * .0254,
+            14. * .0254 + ROBOT_WIDTH / 2.,
+            14. * .0254 + ROBOT_WIDTH / 2.
     };
-    /** Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double station right */
+    /**
+     * Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double
+     * station right
+     */
     public static final double[] DRIVE_X_PRESET_HUMANPLAYER_RED = {
-        FIELD_LENGTH - DRIVE_X_PRESET_HUMANPLAYER_BLUE[0],
-        FIELD_LENGTH - DRIVE_X_PRESET_HUMANPLAYER_BLUE[1],
-        FIELD_LENGTH - DRIVE_X_PRESET_HUMANPLAYER_BLUE[2],
+            FIELD_LENGTH - DRIVE_X_PRESET_HUMANPLAYER_BLUE[0],
+            FIELD_LENGTH - DRIVE_X_PRESET_HUMANPLAYER_BLUE[1],
+            FIELD_LENGTH - DRIVE_X_PRESET_HUMANPLAYER_BLUE[2],
     };
 
-    /** Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double station right */
+    /**
+     * Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double
+     * station right
+     */
     public static final double[] DRIVE_Y_PRESET_HUMANPLAYER_BLUE = {
-        315.5975 * .0254 - ROBOT_WIDTH / 2.,
-        233.6331 * .0254,
-        297.1737 * .0254
+            315.5975 * .0254 - ROBOT_WIDTH / 2.,
+            233.6331 * .0254,
+            297.1737 * .0254
     };
-    /** Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double station right */
+    /**
+     * Distance in meters. 0 -> chute station, 1 -> double station left, 2 -> double
+     * station right
+     */
     public static final double[] DRIVE_Y_PRESET_HUMANPLAYER_RED = {
-        DRIVE_Y_PRESET_HUMANPLAYER_BLUE[0],
-        DRIVE_Y_PRESET_HUMANPLAYER_BLUE[2],
-        DRIVE_Y_PRESET_HUMANPLAYER_BLUE[1]
+            DRIVE_Y_PRESET_HUMANPLAYER_BLUE[0],
+            DRIVE_Y_PRESET_HUMANPLAYER_BLUE[2],
+            DRIVE_Y_PRESET_HUMANPLAYER_BLUE[1]
     };
 
     public static final double GROUND_PIECE_X_BLUE = 278.25 * .0254;
@@ -295,49 +316,49 @@ public final class Constants {
     public static final double GROUND_PIECE_X_RED = FIELD_LENGTH - GROUND_PIECE_X_BLUE;
 
     public static final double[] GROUND_PIECE_Y_BLUE = {
-        36.185 * .0254,
-        84.185 * .0254,
-        132.185 * .0254,
-        180.185 * .0254
+            36.185 * .0254,
+            84.185 * .0254,
+            132.185 * .0254,
+            180.185 * .0254
     };
 
     public static final double[] GROUND_PIECE_Y_RED = GROUND_PIECE_Y_BLUE;
 
     /** Angles are in degrees. Left column is for cone, right column for cube */
     public static final double[][] ARM_ANGLE_PRESET_SCORE = {
-        {-127.5, -110.},
-        {-120., -96.5},
-        {-53., -53.}
+            { 127.5, 110. },
+            { 120., 96.5 },
+            { 53., 53. }
     };
 
     /** Extensions are in inches. Left column is for cone, right column for cube */
     public static final double[][] ARM_EXTENSION_PRESET_SCORE = {
-        {26.5, 17.75},
-        {7.5, 0.},
-        {0., 0.}
+            { 26.5, 17.75 },
+            { 7.5, 0. },
+            { 0., 0. }
     };
 
     /** Angles are in degrees. 0 -> chute station, 1 -> double station */
     public static final double[] ARM_ANGLE_PRESET_HUMANPLAYER = {
-        33.,
-        -130.
+            -33.,
+            130.
     };
-        
+
     /** Extensions are in inches. 0 -> chute station, 1 -> double station */
     public static final double[] ARM_EXTENSION_PRESET_HUMANPLAYER = {
-        0.,
-        12.25
+            0.,
+            12.25
     };
 
     /** Angles are in degrees. 0 -> back, 1 -> front */
     public static final double[] ARM_ANGLE_PRESET_GROUND_PICKUP = {
-        0.,
-        4.5
+            0.,
+            -4.5
     };
-        
+
     /** Extensions are in inches. 0 -> back, 1 -> front */
     public static final double[] ARM_EXTENSION_PRESET_GROUND_PICKUP = {
-        0.,
-        9.5
+            0.,
+            9.5
     };
 }
