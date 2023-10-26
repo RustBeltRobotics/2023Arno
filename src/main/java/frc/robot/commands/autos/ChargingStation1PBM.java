@@ -25,6 +25,8 @@ public class ChargingStation1PBM extends SequentialCommandGroup {
                 new InstantCommand(() -> RobotContainer.intake.zeroIntake(), RobotContainer.intake),
                 RobotContainer.arm.centerArm(),
 
+                new InstantCommand(() -> RobotContainer.drivetrain.zeroGyroscope(0.0)),
+
                 new WaitCommand(.25),
 
                 // drive to balance   
